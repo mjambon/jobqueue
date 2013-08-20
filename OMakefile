@@ -2,10 +2,10 @@ OCAML_LIBS = $(OCAML_LIBS_util)
 
 FILES[] =
 
-OCamlLibrary(web, $(FILES))
-Meta(web)
+OCamlLibrary(util, $(FILES))
+Meta(util)
 
-.DEFAULT: META web.cma web.cmxa
+.DEFAULT: META util.cma util.cmxa
 
 .PHONY: clean
 clean:
