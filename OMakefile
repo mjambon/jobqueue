@@ -1,0 +1,12 @@
+OCAML_LIBS = $(OCAML_LIBS_util)
+
+FILES[] =
+
+OCamlLibrary(web, $(FILES))
+Meta(web)
+
+.DEFAULT: META web.cma web.cmxa
+
+.PHONY: clean
+clean:
+  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt $(ATDGEN_OUTFILES)
