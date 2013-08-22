@@ -1,6 +1,10 @@
 OCAML_LIBS = $(OCAML_LIBS_util)
 
 FILES[] =
+  util_ounit
+  util_time
+  util_enc
+  util_rng
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
