@@ -4,7 +4,12 @@ FILES[] =
   util_ounit
   util_time
   util_enc
+  util_hex
   util_rng
+  util_exn
+  util_text
+  util_http_client
+  util_signal
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
