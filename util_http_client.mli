@@ -13,7 +13,6 @@ val get :
 val post :
   ?headers:(string * string) list ->
   ?body:string ->
-  ?chunked:bool ->
   Uri.t -> response Lwt.t
 val head :
   ?headers:(string * string) list ->
@@ -24,5 +23,4 @@ val delete :
 val put :
   ?headers:(string * string) list ->
   ?body:string ->
-  ?chunked:bool ->
   Uri.t -> response Lwt.t

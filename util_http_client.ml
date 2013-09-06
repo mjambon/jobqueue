@@ -92,7 +92,7 @@ let wrap ?(headers = []) ?body meth uri =
 
 let head ?headers uri = wrap ?headers `HEAD uri
 let get ?headers uri = wrap ?headers `GET uri
-let post ?headers ?body ?chunked uri = wrap ?headers ?body `POST uri
+let post ?headers ?body uri = wrap ?headers ?body `POST uri
 let head ?headers uri = wrap ?headers `HEAD uri
 let delete ?headers uri = wrap ?headers `DELETE uri
-let put ?headers ?body ?chunked uri = wrap ?headers `PUT ?body uri
+let put ?headers ?body uri = wrap ?headers `PUT ?body uri
