@@ -31,7 +31,7 @@ let print_resp req_id status headers body latency =
   printf "Response body:\n%s\n" (Util_text.prettify body);
   flush stdout
 
-let wrap ?(headers = []) ?body ?chunked meth uri =
+let wrap ?(headers = []) ?body meth uri =
   let headers = Cohttp.Header.of_list headers in
   let headers =
     match Cohttp.Header.get headers "content-length", body with
@@ -57,7 +57,7 @@ let wrap ?(headers = []) ?body ?chunked meth uri =
   in
   let x =
     Lwt.bind
-      (Cohttp_lwt_unix.Client.call ~headers ?body ?chunked meth uri)
+      (Cohttp_lwt_unix.Client.call ~headers ?body ~chunked:false meth uri)
       (function
         | None ->
             let url_string = Uri.to_string uri in
@@ -92,7 +92,7 @@ let wrap ?(headers = []) ?body ?chunked meth uri =
 
 let head ?headers uri = wrap ?headers `HEAD uri
 let get ?headers uri = wrap ?headers `GET uri
-let post ?headers ?body ?chunked uri = wrap ?headers ?body ?chunked `POST uri
+let post ?headers ?body ?chunked uri = wrap ?headers ?body `POST uri
 let head ?headers uri = wrap ?headers `HEAD uri
 let delete ?headers uri = wrap ?headers `DELETE uri
-let put ?headers ?body ?chunked uri = wrap ?headers `PUT ?body ?chunked uri
+let put ?headers ?body ?chunked uri = wrap ?headers `PUT ?body uri
