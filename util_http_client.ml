@@ -1,7 +1,7 @@
 open Printf
 
 type response =
-  (Cohttp.Code.status_code * (string * string) list * string) option
+  (Cohttp.Code.status_code * (string * string) list * string)
 
 let trace = ref false
 
@@ -31,7 +31,7 @@ let print_resp req_id status headers body latency =
   printf "Response body:\n%s\n" (Util_text.prettify body);
   flush stdout
 
-let wrap ?(headers = []) ?body ?chunked meth uri =
+let wrap ?(headers = []) ?body meth uri =
   let headers = Cohttp.Header.of_list headers in
   let headers =
     match Cohttp.Header.get headers "content-length", body with
@@ -57,9 +57,11 @@ let wrap ?(headers = []) ?body ?chunked meth uri =
   in
   let x =
     Lwt.bind
-      (Cohttp_lwt_unix.Client.call ~headers ?body ?chunked meth uri)
+      (Cohttp_lwt_unix.Client.call ~headers ?body ~chunked:false meth uri)
       (function
-        | None -> Lwt.return None
+        | None ->
+            let url_string = Uri.to_string uri in
+            failwith ("HTTP client: no response for " ^ url_string)
         | Some (resp, body) ->
             Lwt.bind
               (Cohttp_lwt_body.string_of_body body)
@@ -71,11 +73,9 @@ let wrap ?(headers = []) ?body ?chunked meth uri =
                   print_resp (Lazy.force req_id)
                     status resp_headers body_string (t2 -. t1);
                 Lwt.return (
-                  Some (
-                    status,
-                    Cohttp.Header.to_list resp_headers,
-                    body_string
-                  )
+                  status,
+                  Cohttp.Header.to_list resp_headers,
+                  body_string
                 )
               )
       )
@@ -83,44 +83,16 @@ let wrap ?(headers = []) ?body ?chunked meth uri =
   Lwt.catch
     (fun () -> x)
     (fun e ->
+      let backtrace = Util_exn.string_of_exn e in
+      let url_string = Uri.to_string uri in
       Printf.eprintf "[error] Exception in Cohttp client with URI %s: %s\n%!"
-        (Uri.to_string uri) (Util_exn.string_of_exn e);
-      Lwt.return None)
+        url_string backtrace;
+      failwith ("HTTP client error on " ^ url_string)
+    )
 
 let head ?headers uri = wrap ?headers `HEAD uri
 let get ?headers uri = wrap ?headers `GET uri
-let post ?headers ?body ?chunked uri = wrap ?headers ?body ?chunked `POST uri
+let post ?headers ?body uri = wrap ?headers ?body `POST uri
 let head ?headers uri = wrap ?headers `HEAD uri
 let delete ?headers uri = wrap ?headers `DELETE uri
-let put ?headers ?body ?chunked uri = wrap ?headers `PUT ?body ?chunked uri
-
-
-module Elasticsearch_lwt =
-struct
-  type uri = string
-  type response = (int * (string * string) list * string)
-
-  type 'a computation = 'a Lwt.t
-  let bind = Lwt.bind
-  let return = Lwt.return
-
-  let wrap uri_s call =
-    bind
-      (call (Uri.of_string uri_s))
-      (function
-        | None -> return None
-        | Some (status, headers, body) ->
-            return (Some (Cohttp.Code.code_of_status status, headers, body))
-      )
-
-  let head ?headers s =
-    wrap s (fun uri -> head ?headers uri)
-  let get ?headers s =
-    wrap s (fun uri -> get ?headers uri)
-  let post ?headers ?body s =
-    wrap s (fun uri -> post ?headers ?body uri)
-  let put ?headers ?body s =
-    wrap s (fun uri -> put ?headers ?body uri)
-  let delete ?headers s =
-    wrap s (fun uri -> delete ?headers uri)
-end
+let put ?headers ?body uri = wrap ?headers `PUT ?body uri
