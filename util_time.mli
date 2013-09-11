@@ -1,5 +1,5 @@
 (*
-  RFC 3339 compliant time
+  RFC 3339 compliant time with millisecond precision
 
   This is the modern standard for date and time.
 
@@ -37,6 +37,9 @@ val add : t -> float -> t
 
 val sub : t -> float -> t
   (* subtract seconds *)
+
+val next : t -> t
+  (* return a new date whose string representation is 1 ms later. *)
 
 val compare : t -> t -> int
 
