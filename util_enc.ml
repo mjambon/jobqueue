@@ -19,4 +19,3 @@ let base64url_encode s =
       | '/' -> '_'
       | c   -> c)
     (Cryptokit.(transform_string (Base64.encode_compact ()) s))
-
