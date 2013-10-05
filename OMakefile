@@ -10,6 +10,8 @@ FILES[] =
   util_text
   util_http_client
   util_signal
+  util_html
+  util_lwt
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
