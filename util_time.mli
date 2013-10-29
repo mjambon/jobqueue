@@ -24,6 +24,8 @@ val to_string : t -> string
 val unwrap : t -> string
   (* can be achieved directly with coercion: (mydate :> string) *)
 
+val format : fmt:string -> t -> string
+
 val of_float : float -> t
   (* Format a date given in seconds since 1970-01-01 UTC *)
 
