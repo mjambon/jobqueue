@@ -1,5 +1,12 @@
 open Printf
 
+let plural n =
+  if abs n >= 2 then "s"
+  else ""
+
+let print_omitting buf n =
+  bprintf buf "... (omitting %i line%s)\n" n (plural n)
+
 let rec scan_lines tbl buf s pos ellipsis =
   let len = String.length s in
   let h = ref 0 in
@@ -20,7 +27,7 @@ let rec scan_lines tbl buf s pos ellipsis =
     else (
       Hashtbl.add tbl !h ();
       if ellipsis > 0 then
-        bprintf buf "... (omitting %i lines)\n" ellipsis;
+        print_omitting buf ellipsis;
       Buffer.add_substring buf s pos (!pos2 - pos);
       0
     )
@@ -29,7 +36,7 @@ let rec scan_lines tbl buf s pos ellipsis =
     scan_lines tbl buf s !pos2 ellipsis2
   else
     if ellipsis2 > 0 then
-      bprintf buf "... (omitting %i lines)\n" ellipsis2
+      print_omitting buf ellipsis2
 
 
 (* Replace any sequence of lines that already occurred by "...\n" *)

@@ -41,6 +41,7 @@ let arc_length loc1 loc2 =
 
 
 let palo_alto = { lat = 37.429167; lon = -122.138056 }
+let san_francisco = { lat = 37.7833; lon = 122.4167 }
 let new_york_city = { lat = 41.145556; lon = -73.995 }
 
 let test_arc_length () =
