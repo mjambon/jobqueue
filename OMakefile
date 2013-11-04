@@ -1,7 +1,6 @@
 OCAML_LIBS = $(OCAML_LIBS_util)
 
 FILES[] =
-  util_ounit
   util_string
   util_time
   util_enc
