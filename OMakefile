@@ -4,6 +4,7 @@ FILES[] =
   util_string
   util_time
   util_localtime
+  util_timeonly
   util_enc
   util_hex
   util_rng
