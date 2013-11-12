@@ -1,14 +1,14 @@
 (*
-  Conversion from/to RFC-3339 compatible time of the day of the form HH:MM:SS.
+  Conversion from/to RFC-3339 compatible date of the form YYYY-MM-DD.
 *)
 type t = private {
-  hour : int;
-  min : int;
-  sec : float;
+  year : int;
+  month : int;
+  day : int;
   string : string;
 }
 
-val create : hour:int -> min:int -> sec:float -> t
+val create : year:int -> month:int -> day:int -> t
 
 val of_string : string -> t
 val of_string_opt : string -> t option
@@ -16,8 +16,5 @@ val to_string : t -> string
 
 val wrap : string -> t
 val unwrap : t -> string
-
-val of_float : float -> t
-val to_float : t -> float
 
 val tests : (string * (unit -> bool)) list

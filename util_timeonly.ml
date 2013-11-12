@@ -42,12 +42,33 @@ let to_string x = x.string
 let wrap = of_string
 let unwrap = to_string
 
+let to_float { hour; min; sec } =
+  float hour *. 3600. +. float min *. 60. +. sec
+
+let of_float x =
+  if not (x >= 0. && x < 86400.) then
+    invalid_arg "Util_timeonly.of_float";
+  let sec = mod_float x 60. in
+  let min = truncate (mod_float x 3600. /. 60.) in
+  let hour = truncate (x /. 3600.) in
+  create ~hour ~min ~sec
+
 let test_conversions () =
   let conv s = to_string (of_string s) in
   assert (conv "00:39:57" = "00:39:57.000");
   assert (conv "23:59:57.56789" = "23:59:57.568");
   true
 
+let test_float () =
+  let x = of_float 86399.99 in
+  assert (x.hour = 23);
+  assert (x.min = 59);
+  assert (x.sec > 59.9 && x.sec < 60.);
+  let t = to_float x in
+  assert (t > 86399.9 && t < 86400.);
+  true
+
 let tests = [
   "conversions", test_conversions;
+  "float", test_float;
 ]

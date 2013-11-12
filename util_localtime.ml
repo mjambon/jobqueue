@@ -51,6 +51,58 @@ let to_string x = x.string
 let wrap = of_string
 let unwrap = to_string
 
+let of_pair date time =
+  create
+    ~year: date.Util_dateonly.year
+    ~month: date.Util_dateonly.month
+    ~day: date.Util_dateonly.day
+    ~hour: time.Util_timeonly.hour
+    ~min: time.Util_timeonly.min
+    ~sec: time.Util_timeonly.sec
+
+let dateonly {year; month; day} =
+  Util_dateonly.create ~year ~month ~day
+
+let timeonly {hour; min; sec} =
+  Util_timeonly.create ~hour ~min ~sec
+
+let to_pair x =
+  (dateonly x, timeonly x)
+
+(*
+   1.3 -> 0.3
+   -1.3 -> 0.7
+*)
+let fpart x =
+  x -. floor x
+
+let of_float t =
+  let open Unix in
+  let x = gmtime t in
+  create
+    ~year: (1900 + x.tm_year)
+    ~month: (1 + x.tm_mon)
+    ~day: x.tm_mday
+    ~hour: x.tm_hour
+    ~min: x.tm_min
+    ~sec: (float x.tm_sec +. fpart t)
+
+let to_float x =
+  let t_sec =
+    Nldate.since_epoch {
+      Nldate.year = x.year;
+      month = x.month;
+      day = x.day;
+      hour = x.hour;
+      minute = x.min;
+      second = int_of_float (floor x.sec);
+      nanos = 0;
+      zone = 0;
+      week_day = -1;
+    }
+  in
+  t_sec +. fpart x.sec
+
 let test_conversions () =
   let conv s = to_string (of_string s) in
   assert (conv "1996-12-20T00:39:57Z" = "1996-12-20T00:39:57.000Z");
