@@ -8,6 +8,13 @@ open Printf
 open Lwt
 open Log
 
+let seq a b =
+  catch
+    (fun () -> a >>= fun _ -> return ())
+    (fun e -> return ())
+  >>= fun () ->
+  b ()
+
 let init cmd =
   let worker = ref None in
   let last = ref (return ()) in
@@ -36,17 +43,23 @@ let init cmd =
     catch
       (fun () ->
          let result_t =
-           !last >>= fun () ->
-           Lwt_io.write_line p#stdin data >>= fun () ->
-           Lwt_io.read_line p#stdout
+           seq !last (fun () ->
+             let oc = p#stdin in
+             Lwt_io.write_line oc data >>= fun () ->
+             Lwt_io.flush oc >>= fun () ->
+             Lwt_io.read_line p#stdout
+           )
          in
          last := (result_t >>= fun _ -> return ());
          result_t
       )
-      (fun e ->
-         eprintf "Command %s caused the following error: %s\n%!"
+      (function e ->
+         eprintf "Command %s caused the following error: %s%s\n%!"
            (fst cmd)
-           (Printexc.to_string e);
+           (Printexc.to_string e)
+           (if e = End_of_file then
+              sprintf " (is %s in $PATH?)" (fst cmd)
+            else "");
          cleanup () >>= fun () ->
          return ""
       )
