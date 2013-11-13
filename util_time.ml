@@ -13,7 +13,7 @@ let to_float x = x.unixtime
 
 let parse s =
   (* Adding one microsecond to the float ensures that the string representation
-     will millisecond precision will remain the same. *)
+     with millisecond precision will remain the same. *)
   try Some (of_float (Nldate.since_epoch_approx (Nldate.parse s) +. 1e-6))
   with _ -> None
 
