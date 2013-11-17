@@ -3,18 +3,39 @@ type t = {
   string : string;
 }
 
+let round x =
+  floor (x +. 0.5)
+
+let round_milliseconds x =
+  1e-3 *. round (1e3 *. x)
+
+let test_round_milliseconds () =
+  assert (round_milliseconds 8.01 = 8.01);
+  assert (round_milliseconds 3.0001 = 3.);
+  assert (round_milliseconds 123.4564 = 123.456);
+  assert (round_milliseconds 123.452 = 123.452);
+  assert (round_milliseconds 2.998 = 2.998);
+  assert (round_milliseconds 2.9998 = 3.);
+  assert (round_milliseconds (-1.9999) = -2.);
+  assert (round_milliseconds (-1.0001) = -1.);
+  assert (round_milliseconds (-1.23451) = -1.235);
+  assert (round_milliseconds (-1.23449) = -1.234);
+  true
+
 let of_float t =
   {
     unixtime = t;
-    string = Nldate.mk_internet_date ~localzone:true ~digits:3 t;
+    string =
+      Nldate.mk_internet_date
+        ~localzone:true ~digits:3
+        (round_milliseconds t);
   }
 
 let to_float x = x.unixtime
 
 let parse s =
-  (* Adding one microsecond to the float ensures that the string representation
-     with millisecond precision will remain the same. *)
-  try Some (of_float (Nldate.since_epoch_approx (Nldate.parse s) +. 1e-6))
+  try
+    Some (of_float (Nldate.since_epoch_approx (Nldate.parse s)))
   with _ -> None
 
 let of_string s =
@@ -55,3 +76,7 @@ struct
   let ( <= ) a b = compare a b <= 0
   let ( >= ) a b = compare a b >= 0
 end
+
+let tests = [
+  "round milliseconds", test_round_milliseconds;
+]

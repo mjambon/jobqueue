@@ -76,16 +76,37 @@ let to_pair x =
 let fpart x =
   x -. floor x
 
-let of_float t =
+let of_unix_tm x subsecond =
+  if not (subsecond >= 0. && subsecond < 1.) then
+    invalid_arg ("Util_localtime.of_unix_tm: out-of-range subsecond "
+                  ^ string_of_float subsecond);
   let open Unix in
-  let x = gmtime t in
   create
     ~year: (1900 + x.tm_year)
     ~month: (1 + x.tm_mon)
     ~day: x.tm_mday
     ~hour: x.tm_hour
     ~min: x.tm_min
-    ~sec: (float x.tm_sec +. fpart t)
+    ~sec: (float x.tm_sec +. subsecond)
+
+let to_unix_tm x =
+  {
+    Unix.tm_sec = truncate x.sec;
+    tm_min = x.min;
+    tm_hour = x.hour;
+    tm_mday = x.day;
+    tm_mon = x.month - 1;
+    tm_year = x.year - 1900;
+    tm_wday = 0; (* ignored by Unix.mktime *)
+    tm_yday = 0; (* ignored by Unix.mktime *)
+    tm_isdst = false; (* ignored by Unix.mktime *)
+  }, fpart x.sec
+
+
+let of_float t =
+  let open Unix in
+  let x = gmtime t in
+  of_unix_tm x (fpart t)
 
 let to_float x =
   let t_sec =

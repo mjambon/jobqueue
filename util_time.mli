@@ -53,3 +53,5 @@ sig
   val ( <= ) : t -> t -> bool
   val ( >= ) : t -> t -> bool
 end
+
+val tests : (string * (unit -> bool)) list

@@ -34,4 +34,22 @@ val timeonly : t -> Util_timeonly.t
 val of_float : float -> t
 val to_float : t -> float
 
+val of_unix_tm : Unix.tm -> float -> t
+val to_unix_tm : t -> Unix.tm * float
+  (* Convert from/to Unix.tm record and remaining fraction of one second.
+
+     Warning: fields tm_wday, tm_yday and tm_isdst are initialized
+     with meaningless values; this is fine for passing to Unix.mktime.
+  *)
+
+val fpart : float -> float
+  (*
+     Return what needs to be subtracted in order to round down to the
+     nearest integer, i.e. x -> (x -. floor x).
+
+     1.3 -> 0.3
+     -1.3 -> 0.7
+  *)
+
+
 val tests : (string * (unit -> bool)) list
