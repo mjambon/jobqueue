@@ -64,7 +64,7 @@ let test_arc_length () =
       palo_alto
       { palo_alto with lon = palo_alto.lon +. 1e-9 }
   in
-  assert (d > 0. && d < 1.);
+  assert (d >= 0. && d < 1.);
   true
 
 let tests = [
