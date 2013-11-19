@@ -51,6 +51,11 @@ let arc_length_xyz p1 p2 =
 let arc_length loc1 loc2 =
   arc_length_xyz (xyz_of_latlon loc1) (xyz_of_latlon loc2)
 
+let arc_length_opt opt_loc1 opt_loc2 =
+  match opt_loc1, opt_loc2 with
+  | None, _
+  | _, None -> 0.
+  | Some loc1, Some loc2 -> arc_length loc1 loc2
 
 let palo_alto = { lat = 37.429167; lon = -122.138056 }
 let san_francisco = { lat = 37.7833; lon = -122.4167 }
