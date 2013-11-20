@@ -23,12 +23,13 @@ let test_round_milliseconds () =
   true
 
 let of_float t =
+  let t = round_milliseconds t in
   {
     unixtime = t;
     string =
       Nldate.mk_internet_date
         ~localzone:true ~digits:3
-        (round_milliseconds t);
+        t;
   }
 
 let to_float x = x.unixtime
@@ -68,6 +69,19 @@ let unwrap = to_string
 
 let compare a b = Pervasives.compare a.unixtime b.unixtime
 
+let test_recover () =
+  let conv t =
+    let x1 = of_float t in
+    let x2 = of_string (to_string x1) in
+    x1 = x2
+  in
+  assert (conv 0.);
+  assert (conv 0.1000);
+  assert (conv 0.1001);
+  assert (conv 0.1002);
+  assert (conv 0.1003);
+  true
+
 module Op =
 struct
   let ( = ) a b = compare a b = 0
@@ -79,4 +93,5 @@ end
 
 let tests = [
   "round milliseconds", test_round_milliseconds;
+  "recover", test_recover;
 ]
