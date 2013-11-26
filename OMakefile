@@ -6,6 +6,7 @@ FILES[] =
   util_localtime
   util_dateonly
   util_timeonly
+  util_format_date
   util_enc
   util_hex
   util_rng
