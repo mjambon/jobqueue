@@ -25,7 +25,7 @@ module US = struct
   (* "August 13, 2019" *)
   let date_only x =
     sprintf "%s %i, %s"
-      (week_day x) x.tm_mday (year x)
+      (month x) x.tm_mday (year x)
 
   (* "1:30 pm" *)
   let time_only x =
@@ -39,6 +39,6 @@ module US = struct
       else
         h0 - 12, "pm"
     in
-    sprintf "%02d:%02d %s" h m ampm
+    sprintf "%d:%02d %s" h m ampm
 
 end
