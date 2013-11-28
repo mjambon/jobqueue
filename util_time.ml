@@ -20,6 +20,7 @@ let test_round_milliseconds () =
   assert (round_milliseconds (-1.0001) = -1.);
   assert (round_milliseconds (-1.23451) = -1.235);
   assert (round_milliseconds (-1.23449) = -1.234);
+  assert (round_milliseconds 1385625519.658 = 1385625519.658);
   true
 
 let of_float t =
@@ -29,7 +30,7 @@ let of_float t =
     string =
       Nldate.mk_internet_date
         ~localzone:true ~digits:3
-        t;
+        (t +. 0.0005);
   }
 
 let to_float x = x.unixtime
