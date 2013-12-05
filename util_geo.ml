@@ -4,58 +4,43 @@ type latlon = {
   lon: float
 }
 
-(* Geocentric coordinates in meters *)
-type xyz = {
-  x: float;
-  y: float;
-  z: float;
-}
-
-let earth_radius = 6.371e6
-let pi = acos (-1.)
-
-let radians deg =
-  (pi /. 180.) *. deg
-
-let xyz_of_latlon {lat; lon} =
-  let lat = radians lat in
-  let lon = radians lon in
-  let r = earth_radius in
-  {
-    x = r *. cos lat *. cos lon;
-    y = r *. cos lat *. sin lon;
-    z = r *. sin lat;
-  }
-
 let string_of_latlon {lat; lon} =
   "(" ^ string_of_float lat ^ "," ^ string_of_float lon ^ ")"
 
 let latlon_of_string s =
   Scanf.sscanf s "(%f,%f)" (fun lat lon -> {lat; lon})
 
-let dot p1 p2 =
-     p1.x *. p2.x
-  +. p1.y *. p2.y
-  +. p1.z *. p2.z
+(* Very simple spherical distance implementation
+   Assumes Earth has uniform radius of ~3959 miles
+   Uses Haversine formula *)
 
-let div { x; y; z } r = {
-  x = x /. r;
-  y = y /. r;
-  z = z /. r;
-}
+let pi = acos (-. 1.)
 
-let arc_length_xyz p1 p2 =
-  let angle = acos (dot p1 p2 /. (earth_radius ** 2.)) in
-  earth_radius *. angle
+let radians deg =
+  deg *. pi /. 180.
 
-let arc_length_xyz p1 p2 =
-  if p1 = p2 then 0.
-  else
-    let angle = acos (dot p1 p2 /. (earth_radius *. earth_radius)) in
-    earth_radius *. angle
+let degrees rad =
+  180. *. rad /. pi
+
+let earth_radius = 3958.76 (* miles *)
+
+let haversine latlon1 latlon2 =
+  let lat1 = latlon1.lat and lat2 = latlon2.lat in
+  let lon1 = latlon1.lon and lon2 = latlon2.lon in
+  let d_lat = radians (lat2 -. lat1) in
+  let d_lon = radians (lon2 -. lon1) in
+  let lat_sin = sin (d_lat /. 2.) in
+  let lon_sin = sin (d_lon /. 2.) in
+  let a =
+    lat_sin *. lat_sin
+    +. (cos (radians lat1)) *. (cos (radians lat2))
+    *. lon_sin *. lon_sin
+  in
+  let c = 2. *. asin (sqrt a) in
+  earth_radius *. c
 
 let arc_length loc1 loc2 =
-  arc_length_xyz (xyz_of_latlon loc1) (xyz_of_latlon loc2)
+  if loc1 = loc2 then 0. else haversine loc1 loc2
 
 let arc_length_opt opt_loc1 opt_loc2 =
   match opt_loc1, opt_loc2 with
