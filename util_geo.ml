@@ -4,11 +4,17 @@ type latlon = {
   lon: float
 }
 
-let string_of_latlon {lat; lon} =
-  "(" ^ string_of_float lat ^ "," ^ string_of_float lon ^ ")"
+let string_of_latlon latlon =
+  string_of_float latlon.lat ^ "," ^ string_of_float latlon.lon
 
 let latlon_of_string s =
-  Scanf.sscanf s "(%f,%f)" (fun lat lon -> {lat; lon})
+  Scanf.sscanf s "%f,%f" (fun lat lon -> {lat; lon})
+
+let approximate_string_of_latlon_time (latlon, time) =
+  Printf.sprintf "%.2f,%.2f%@%f" latlon.lat latlon.lon time
+
+let latlon_time_of_string s =
+  Scanf.sscanf s "%f,%f%@%f" (fun lat lon time -> ({lat; lon}, time))
 
 (* Very simple spherical distance implementation
    Assumes Earth has uniform radius of ~6371 kilometers
