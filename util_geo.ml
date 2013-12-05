@@ -11,7 +11,7 @@ let latlon_of_string s =
   Scanf.sscanf s "(%f,%f)" (fun lat lon -> {lat; lon})
 
 (* Very simple spherical distance implementation
-   Assumes Earth has uniform radius of ~3959 miles
+   Assumes Earth has uniform radius of ~6371 kilometers
    Uses Haversine formula *)
 
 let pi = acos (-. 1.)
@@ -22,7 +22,7 @@ let radians deg =
 let degrees rad =
   180. *. rad /. pi
 
-let earth_radius = 3958.76 (* miles *)
+let earth_radius = 6371000. (* meters *)
 
 let haversine latlon1 latlon2 =
   let lat1 = latlon1.lat and lat2 = latlon2.lat in
@@ -52,6 +52,9 @@ let palo_alto = { lat = 37.429167; lon = -122.138056 }
 let san_francisco = { lat = 37.7833; lon = -122.4167 }
 let new_york_city = { lat = 41.145556; lon = -73.995 }
 
+let origin = { lat = 0.; lon = 0. }
+let origin_offset = { lat = 0.; lon = 0.01 }
+
 let test_arc_length () =
   let d = arc_length palo_alto new_york_city in
   assert (d >= 4000e3 && d <= 4200e3);
@@ -61,6 +64,8 @@ let test_arc_length () =
       { palo_alto with lon = palo_alto.lon +. 1e-9 }
   in
   assert (d >= 0. && d < 1.);
+  let d = arc_length origin origin_offset in
+  assert (d >= 0. && d < 1200.);
   true
 
 let tests = [
