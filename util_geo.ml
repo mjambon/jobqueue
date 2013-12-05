@@ -27,6 +27,12 @@ let xyz_of_latlon {lat; lon} =
     z = r *. sin lat;
   }
 
+let string_of_latlon {lat; lon} =
+  "(" ^ string_of_float lat ^ "," ^ string_of_float lon ^ ")"
+
+let latlon_of_string s =
+  Scanf.sscanf s "(%f,%f)" (fun lat lon -> {lat; lon})
+
 let dot p1 p2 =
      p1.x *. p2.x
   +. p1.y *. p2.y
