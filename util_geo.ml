@@ -10,11 +10,8 @@ let string_of_latlon latlon =
 let latlon_of_string s =
   Scanf.sscanf s "%f,%f" (fun lat lon -> {lat; lon})
 
-let approximate_string_of_latlon_time (latlon, time) =
-  Printf.sprintf "%.2f,%.2f%@%f" latlon.lat latlon.lon time
-
-let latlon_time_of_string s =
-  Scanf.sscanf s "%f,%f%@%f" (fun lat lon time -> ({lat; lon}, time))
+let approximate_string_of_latlon latlon =
+  Printf.sprintf "%.2f,%.2f" latlon.lat latlon.lon
 
 (* Very simple spherical distance implementation
    Assumes Earth has uniform radius of ~6371 kilometers
