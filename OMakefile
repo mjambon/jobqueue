@@ -14,6 +14,7 @@ FILES[] =
   util_text
   util_http_client
   util_signal
+  util_url
   util_html
   util_lwt
   util_geo
