@@ -20,6 +20,7 @@ FILES[] =
   util_geo
   util_model
   util_process
+  util_list
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
