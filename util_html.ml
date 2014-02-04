@@ -84,9 +84,18 @@ let remove_first_character line =
 
 let rec remove_leading_spaces_evenly lines =
   if List.for_all has_space_prefix lines then
-    remove_leading_spaces_evenly (BatList.map remove_first_character lines)
+    let l = BatList.map remove_first_character lines in
+    if l = lines then
+      l
+    else
+      remove_leading_spaces_evenly l
   else
     lines
+
+let handle_regular_lines regular_lines =
+  let s = String.concat "\n" regular_lines in
+  let paragraphs = parse_paragraphs s in
+  Paragraphs paragraphs
 
 let rec parse_quotes lines =
   map_contiguous
@@ -94,13 +103,12 @@ let rec parse_quotes lines =
     (fun quoted_lines ->
        let lines = BatList.map remove_first_character quoted_lines in
        let lines = remove_leading_spaces_evenly lines in
-       Quote (parse_quotes lines)
+       if lines <> quoted_lines then
+         Quote (parse_quotes lines)
+       else
+         handle_regular_lines lines
     )
-    (fun regular_lines ->
-       let s = String.concat "\n" regular_lines in
-       let paragraphs = parse_paragraphs s in
-       Paragraphs paragraphs
-    )
+    handle_regular_lines
     lines
 
 let encode_paragraph l =
@@ -113,7 +121,7 @@ let encode_text l =
   let rec print_one buf = function
     | Quote l ->
         bprintf buf
-          "<blockquote type=\"cite\">\n%a\n</blockquote>\n"
+          "<blockquote>\n%a\n</blockquote>\n"
           print_list l
     | Paragraphs l ->
         Buffer.add_string buf (encode_paragraphs l)
@@ -163,19 +171,19 @@ and I want a lot of presents.</p>
 
 
 <p>Thanks!</p>
-<blockquote type=\"cite\">
+<blockquote>
 <p>What would you like this year?</p>
 
 
 <p>-- Santa Claus</p>
-<blockquote type=\"cite\">
+<blockquote>
 <p>Hey, are you<br>
 the real Santa?</p>
 
 </blockquote>
 
 </blockquote>
-<blockquote type=\"cite\">
+<blockquote>
 <p>The following is indented but it won&apos;t be rendered as such:<br>
                      ***</p>
 
@@ -184,6 +192,12 @@ the real Santa?</p>
   in
   of_text s = expected
 
+let test_blank_quote () =
+  ignore (of_text ">"); (* test against infinite loop *)
+  true
+
 let tests = [
+  "map contiguous", test_map_contiguous;
   "from text", test_from_text;
+  "blank quote", test_blank_quote;
 ]
