@@ -8,7 +8,7 @@ let encode s =
       | '>' -> Buffer.add_string buf "&gt;"
       | '&' -> Buffer.add_string buf "&amp;"
       | '\"' -> Buffer.add_string buf "&quot;"
-      | '\'' -> Buffer.add_string buf "&apos;" (* valid in HTML5 only *)
+      | '\'' -> Buffer.add_string buf "&#39;"
       | c -> Buffer.add_char buf c
   done;
   Buffer.contents buf
@@ -166,7 +166,7 @@ Thanks!
 <p>Dear Santa,</p>
 
 
-<p>I hope you&apos;re doing well<br>
+<p>I hope you&#39;re doing well<br>
 and I want a lot of presents.</p>
 
 
@@ -184,7 +184,7 @@ the real Santa?</p>
 
 </blockquote>
 <blockquote>
-<p>The following is indented but it won&apos;t be rendered as such:<br>
+<p>The following is indented but it won&#39;t be rendered as such:<br>
                      ***</p>
 
 </blockquote>
