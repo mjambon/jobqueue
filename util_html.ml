@@ -121,7 +121,7 @@ let encode_text l =
   let rec print_one buf = function
     | Quote l ->
         bprintf buf
-          "<blockquote>\n%a\n</blockquote>\n"
+          "<blockquote type='cite'>\n%a\n</blockquote>\n"
           print_list l
     | Paragraphs l ->
         Buffer.add_string buf (encode_paragraphs l)
@@ -171,19 +171,19 @@ and I want a lot of presents.</p>
 
 
 <p>Thanks!</p>
-<blockquote>
+<blockquote type='cite'>
 <p>What would you like this year?</p>
 
 
 <p>-- Santa Claus</p>
-<blockquote>
+<blockquote type='cite'>
 <p>Hey, are you<br>
 the real Santa?</p>
 
 </blockquote>
 
 </blockquote>
-<blockquote>
+<blockquote type='cite'>
 <p>The following is indented but it won&#39;t be rendered as such:<br>
                      ***</p>
 
