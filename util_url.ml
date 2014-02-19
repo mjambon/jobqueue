@@ -1,22 +1,20 @@
-let encode s = Nlencoding.Url.encode ~plus:false  s
+let encode s = Nlencoding.Url.encode ~plus:false s
 let decode s = Nlencoding.Url.decode ~plus:false s
 
-(* Workaround incorrect Uri.path which does not encode the components.
-   It works except for extra slashes inserted with %2F *)
-let extract_path_elem url_string =
-  let uri = Uri.of_string url_string in
-  Pcre.split ~pat:"/" (Uri.path uri)
-
 let extract_path url_string =
-  let decoded_components = extract_path_elem url_string in
-  String.concat "/" (BatList.map encode decoded_components)
+  Uri.path (Uri.of_string url_string)
 
-let test_extract_path () =
-  (* FIXME: "/a/b%2Fc" should give "/a/b%2Fc" instead of "/a/b/c" *)
+let test1_extract_path () =
+  let input = "/a/b%2Fc" in
+  let expected_output = "/a/b%2Fc" in
+  extract_path input = expected_output
+
+let test2_extract_path () =
   let input = "http://example.com/a/b%20c/d" in
   let expected_output = "/a/b%20c/d" in
   extract_path input = expected_output
 
 let tests = [
-  "extract path", test_extract_path;
+  "extract path 1", test1_extract_path;
+  "extract path 2", test2_extract_path;
 ]
