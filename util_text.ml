@@ -78,6 +78,10 @@ let looks_binary s =
   done;
   float !control /. float len >= 0.10
 
+let email_address_regex = Pcre.regexp "[^@]+@[^@]+\\.[^@]"
+
+let looks_like_email_address s = Pcre.pmatch ~rex:email_address_regex s
+
 let string_of_binary ?(maxlen = 60) s =
   let len = String.length s in
   if len <= maxlen then
