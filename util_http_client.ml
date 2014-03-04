@@ -96,3 +96,4 @@ let post ?headers ?body uri = wrap ?headers ?body `POST uri
 let head ?headers uri = wrap ?headers `HEAD uri
 let delete ?headers uri = wrap ?headers `DELETE uri
 let put ?headers ?body uri = wrap ?headers `PUT ?body uri
+let patch ?headers ?body uri = wrap ?headers `PATCH ?body uri

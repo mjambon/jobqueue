@@ -24,3 +24,7 @@ val put :
   ?headers:(string * string) list ->
   ?body:string ->
   Uri.t -> response Lwt.t
+val patch :
+  ?headers:(string * string) list ->
+  ?body:string ->
+  Uri.t -> response Lwt.t
