@@ -111,8 +111,18 @@ let rec parse_quotes lines =
     handle_regular_lines
     lines
 
+let url_regexp = Pcre.regexp
+  "\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))"
+
+let tag_links line =
+  Pcre.replace
+    ~rex:url_regexp
+    ~itempl:(Pcre.subst "<a href=\"$&\">$&</a>")
+    line
+
 let encode_paragraph l =
-  "<p>" ^ String.concat "<br>\n" (BatList.map encode l) ^ "</p>\n"
+  let paragraph = BatList.map (fun s -> tag_links (encode s)) l in
+  "<p>" ^ String.concat "<br>\n" paragraph ^ "</p>\n"
 
 let encode_paragraphs ll =
   String.concat "\n\n" (BatList.map encode_paragraph ll)
