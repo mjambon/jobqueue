@@ -53,31 +53,27 @@ let wrap ?(headers = []) ?body meth uri =
   let body =
     match body with
         None -> None
-      | Some s -> Cohttp_lwt_body.body_of_string s
+      | Some s -> Some (Cohttp_lwt_body.of_string s)
   in
   let x =
     Lwt.bind
       (Cohttp_lwt_unix.Client.call ~headers ?body ~chunked:false meth uri)
-      (function
-        | None ->
-            let url_string = Uri.to_string uri in
-            failwith ("HTTP client: no response for " ^ url_string)
-        | Some (resp, body) ->
-            Lwt.bind
-              (Cohttp_lwt_body.string_of_body body)
-              (fun body_string ->
-                let status = Cohttp_lwt_unix.Response.status resp in
-                let resp_headers = Cohttp_lwt_unix.Response.headers resp in
-                let t2 = Unix.gettimeofday () in
-                if !trace then
-                  print_resp (Lazy.force req_id)
-                    status resp_headers body_string (t2 -. t1);
-                Lwt.return (
-                  status,
-                  Cohttp.Header.to_list resp_headers,
-                  body_string
-                )
-              )
+      (fun (resp, body) ->
+        Lwt.bind
+          (Cohttp_lwt_body.to_string body)
+          (fun body_string ->
+            let status = Cohttp_lwt_unix.Response.status resp in
+            let resp_headers = Cohttp_lwt_unix.Response.headers resp in
+            let t2 = Unix.gettimeofday () in
+            if !trace then
+              print_resp (Lazy.force req_id)
+                status resp_headers body_string (t2 -. t1);
+            Lwt.return (
+              status,
+              Cohttp.Header.to_list resp_headers,
+              body_string
+            )
+          )
       )
   in
   Lwt.catch
