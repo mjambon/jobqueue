@@ -22,3 +22,6 @@ let base64url_encode s =
 
 let base64_encode s =
   Cryptokit.(transform_string (Base64.encode_multiline ()) s)
+
+let base64_decode s =
+  Cryptokit.(transform_string (Base64.decode ()) s)
