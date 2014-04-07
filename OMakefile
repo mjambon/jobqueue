@@ -19,7 +19,6 @@ FILES[] =
   util_lwt
   util_geo
   util_model
-  util_process
   util_list
 
 OCamlLibrary(util, $(FILES))
