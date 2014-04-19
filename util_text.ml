@@ -112,3 +112,12 @@ let tests = [
   "utf8 (byte128 in a longer string)",
     (fun () ->  not (Utf8val.is_utf8 "a\128b"));
 ]
+
+let find_matching_substring input regex str =
+  try
+    let subs = Pcre.exec ~pat:regex str in
+    let (st, en) = Pcre.get_substring_ofs subs 0 in
+    let sub_len = en - st in
+    Some (Some { Api_t.offset = st; length = sub_len })
+  with Not_found -> None
+
