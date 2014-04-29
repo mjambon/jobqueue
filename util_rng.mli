@@ -5,7 +5,7 @@ val random : int -> int
 
 val uuid : unit -> string
   (** Make a version 4 UUID.
-      Java's java.util.UUID.randomeUUID() uses this version *)
+      Java's java.util.UUID.randomUUID() uses this version *)
 
 val string : int -> string
   (** Make a random string of the given length in bytes *)
