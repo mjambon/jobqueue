@@ -52,3 +52,8 @@ let find_map_right_s l f =
 let filter_map_p f l =
   Lwt_list.map_p l f >>= fun l ->
   return (BatList.filter_map (fun o -> o) l)
+
+let map_default default opt f =
+  match opt with
+  | None -> return default
+  | Some x -> f x

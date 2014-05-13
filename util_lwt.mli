@@ -43,3 +43,5 @@ val find_map_left_s : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 val find_map_right_s : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 val filter_map_p : 'a list -> ('a -> 'b option Lwt.t) -> 'b list Lwt.t
+
+val map_default : 'b -> 'a option -> ('a -> 'b Lwt.t) -> 'b Lwt.t
