@@ -21,6 +21,8 @@ FILES[] =
   util_geo
   util_model
   util_list
+  util_modseq
+  util_gthrid
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
