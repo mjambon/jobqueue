@@ -39,6 +39,40 @@ let union_full get_key l1 l2 = unique_full get_key (l1 @ l2)
 
 let union l1 l2 = union_full (fun x -> x) l1 l2
 
+(*
+   Return a list of elements that exist in both lists.
+   The result does not contain duplicates.
+*)
+let inter_full get_key l1 l2 =
+  let short, long =
+    let len1 = List.length l1
+    and len2 = List.length l2 in
+    if len1 < len2 then
+      l1, l2
+    else
+      l2, l1
+  in
+  let tbl = Hashtbl.create (2 * List.length short) in
+  List.iter (fun x ->
+    let k = get_key x in
+    Hashtbl.replace tbl k x
+  ) short;
+  List.filter (fun x ->
+    let k = get_key x in
+    let b = Hashtbl.mem tbl k in
+    if b then
+      Hashtbl.remove tbl k;
+    b
+  ) long
+
+let inter l1 l2 = inter_full (fun x -> x) l1 l2
+
+let test_inter () =
+  let result = inter [1;2;3;4;3] [5;4;6;1;4;3] in
+  let expected = [1;3;4] in
+  List.sort compare result = List.sort compare expected
+
 let tests = [
   "unique", test_unique;
+  "inter", test_inter;
 ]
