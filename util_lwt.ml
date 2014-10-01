@@ -38,16 +38,16 @@ let join4 a b c d =
 let join5 a b c d e =
   bind5 a b c d e (fun a b c d e -> return (a, b, c, d, e))
 
-let rec find_map_left_s l f =
+let rec find_map_left l f =
   match l with
   | [] -> return None
   | x :: tl ->
       f x >>= function
-      | None -> find_map_left_s tl f
+      | None -> find_map_left tl f
       | Some y as result -> return result
 
-let find_map_right_s l f =
-  find_map_left_s (List.rev l) f
+let find_map_right l f =
+  find_map_left (List.rev l) f
 
 let filter_map_p f l =
   Lwt_list.map_p l f >>= fun l ->

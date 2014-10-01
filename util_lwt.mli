@@ -37,10 +37,10 @@ val join5 :
   'c Lwt.t -> 'd Lwt.t -> 'e Lwt.t -> ('a * 'b * 'c * 'd * 'e) Lwt.t
 
 (* Map elements of a list from left to right until a match is found *)
-val find_map_left_s : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
+val find_map_left : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 (* Map elements of a list from right to left until a match is found *)
-val find_map_right_s : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
+val find_map_right : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 val filter_map_p : 'a list -> ('a -> 'b option Lwt.t) -> 'b list Lwt.t
 
