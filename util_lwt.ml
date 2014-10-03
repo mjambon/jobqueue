@@ -57,3 +57,11 @@ let map_default default opt f =
   match opt with
   | None -> return default
   | Some x -> f x
+
+
+let rec iter_stream chunk_size stream f =
+  Lwt_stream.nget chunk_size stream >>= function
+  | [] -> return ()
+  | l ->
+      Lwt_list.iter_p f l >>= fun () ->
+      iter_stream chunk_size stream f
