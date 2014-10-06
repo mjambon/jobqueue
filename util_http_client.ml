@@ -93,3 +93,31 @@ let head ?headers uri = wrap ?headers `HEAD uri
 let delete ?headers uri = wrap ?headers `DELETE uri
 let put ?headers ?body uri = wrap ?headers `PUT ?body uri
 let patch ?headers ?body uri = wrap ?headers `PATCH ?body uri
+
+module Elasticsearch_lwt =
+struct
+  type uri = string
+  type response = (int * (string * string) list * string)
+
+  type 'a computation = 'a Lwt.t
+  let bind = Lwt.bind
+  let return = Lwt.return
+
+  let wrap uri_s call =
+    bind
+      (call (Uri.of_string uri_s))
+      (fun (status, headers, body) ->
+        return (Some (Cohttp.Code.code_of_status status, headers, body))
+      )
+
+  let head ?headers s =
+    wrap s (fun uri -> head ?headers uri)
+  let get ?headers s =
+    wrap s (fun uri -> get ?headers uri)
+  let post ?headers ?body s =
+    wrap s (fun uri -> post ?headers ?body uri)
+  let put ?headers ?body s =
+    wrap s (fun uri -> put ?headers ?body uri)
+  let delete ?headers s =
+    wrap s (fun uri -> delete ?headers uri)
+end

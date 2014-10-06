@@ -28,3 +28,32 @@ val patch :
   ?headers:(string * string) list ->
   ?body:string ->
   Uri.t -> response Lwt.t
+
+(** Module matching the signature expected by elasticsearch:
+    the URI is a string and the response status is an int. *)
+module Elasticsearch_lwt :
+sig
+  type uri = string
+  type response = (int * (string * string) list * string)
+
+  type 'a computation = 'a Lwt.t
+  val bind : 'a computation -> ('a -> 'b computation) -> 'b computation
+  val return : 'a -> 'a computation
+  val head :
+    ?headers:(string * string) list ->
+    uri -> response option computation
+  val get :
+    ?headers:(string * string) list ->
+    uri -> response option computation
+  val post :
+    ?headers:(string * string) list ->
+    ?body:string ->
+    uri -> response option computation
+  val delete :
+    ?headers:(string * string) list ->
+    uri -> response option computation
+  val put :
+    ?headers:(string * string) list ->
+    ?body:string ->
+    uri -> response option computation
+end
