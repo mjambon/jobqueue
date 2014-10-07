@@ -37,11 +37,17 @@ val join5 :
   'c Lwt.t -> 'd Lwt.t -> 'e Lwt.t -> ('a * 'b * 'c * 'd * 'e) Lwt.t
 
 (* Map elements of a list from left to right until a match is found *)
-val find_map_left_s : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
+val find_map_left : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 (* Map elements of a list from right to left until a match is found *)
-val find_map_right_s : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
+val find_map_right : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 val filter_map_p : 'a list -> ('a -> 'b option Lwt.t) -> 'b list Lwt.t
 
 val map_default : 'b -> 'a option -> ('a -> 'b Lwt.t) -> 'b Lwt.t
+
+val iter_stream : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
+(*
+   Parallel iteration over a stream.
+   At most chunk_size (first parameter) items are processed at the same time.
+*)
