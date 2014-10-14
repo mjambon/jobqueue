@@ -65,3 +65,15 @@ let rec iter_stream chunk_size stream f =
   | l ->
       Lwt_list.iter_p f l >>= fun () ->
       iter_stream chunk_size stream f
+
+let gethostbyname hostname =
+  catch
+    (fun () ->
+       Lwt_unix.gethostbyname hostname
+    )
+    (function
+      | Not_found ->
+          failwith ("Cannot resolve host " ^ hostname)
+      | e ->
+          raise e
+    )
