@@ -72,7 +72,32 @@ let test_inter () =
   let expected = [1;3;4] in
   List.sort compare result = List.sort compare expected
 
+let group_by_key pair_list =
+  let tbl = Hashtbl.create (List.length pair_list) in
+  List.iter (fun (k, v) ->
+    let r =
+      try Hashtbl.find tbl k
+      with Not_found ->
+        let r = ref [] in
+        Hashtbl.add tbl k r;
+        r
+    in
+    r := v :: !r
+  ) pair_list;
+  Hashtbl.fold (fun k r acc -> (k, List.rev !r) :: acc) tbl []
+
+let test_group_by_key () =
+  List.sort compare (group_by_key [1,2;
+                                   2,4;
+                                   1,5;
+                                   3,6;
+                                   3,7])
+  = List.sort compare [1, [2; 5];
+                       2, [4];
+                       3, [6; 7]]
+
 let tests = [
   "unique", test_unique;
   "inter", test_inter;
+  "group by key", test_group_by_key;
 ]
