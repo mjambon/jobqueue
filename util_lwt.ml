@@ -49,8 +49,8 @@ let rec find_map_left l f =
 let find_map_right l f =
   find_map_left (List.rev l) f
 
-let filter_map_p f l =
-  Lwt_list.map_p l f >>= fun l ->
+let filter_map_p l f =
+  Lwt_list.map_p f l >>= fun l ->
   return (BatList.filter_map (fun o -> o) l)
 
 let map_default default opt f =
