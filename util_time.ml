@@ -69,6 +69,8 @@ let wrap = of_string
 let unwrap = to_string
 
 let compare a b = Pervasives.compare a.unixtime b.unixtime
+let min a b = if compare a b <= 0 then a else b
+let max a b = if compare a b >= 0 then a else b
 
 let test_recover () =
   let conv t =

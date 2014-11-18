@@ -44,6 +44,8 @@ val next : t -> t
   (* return a new date whose string representation is 1 ms later. *)
 
 val compare : t -> t -> int
+val min : t -> t -> t
+val max : t -> t -> t
 
 module Op :
 sig
