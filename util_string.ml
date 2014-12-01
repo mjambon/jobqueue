@@ -1,3 +1,7 @@
+type t = string
+let of_string s = s
+let to_string s = s
+
 let ascii_lowercase s =
   let s' = String.copy s in
   for i = 0 to String.length s - 1 do
