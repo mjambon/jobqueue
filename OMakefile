@@ -21,6 +21,7 @@ FILES[] =
   util_geo
   util_model
   util_list
+  util_iter
   util_worker
 
 OCamlLibrary(util, $(FILES))
