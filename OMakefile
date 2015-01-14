@@ -4,6 +4,7 @@ FILES[] =
   util_test
   util_string
   util_time
+  util_unixtime
   util_localtime
   util_dateonly
   util_timeonly
