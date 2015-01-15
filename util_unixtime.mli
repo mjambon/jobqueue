@@ -13,8 +13,11 @@ type t
 val to_string : t -> string
 val of_string : string -> t
 
-val of_float : t -> float
-val to_float : float -> t
+val of_float : float -> t
+val to_float : t -> float
+
+val wrap : float -> t
+val unwrap : t -> float
 
 val to_time : t -> Util_time.t
 val of_time : Util_time.t -> t

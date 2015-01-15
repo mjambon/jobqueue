@@ -25,6 +25,9 @@ let of_float x =
 let to_float x =
   x
 
+let wrap = of_float
+let unwrap = to_float
+
 let of_time x =
   Util_time.to_float x
 
