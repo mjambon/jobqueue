@@ -18,10 +18,11 @@ FILES[] =
   util_signal
   util_url
   util_html
+  util_conc
   util_lwt
+  util_list
   util_geo
   util_model
-  util_list
   util_worker
 
 OCamlLibrary(util, $(FILES))
