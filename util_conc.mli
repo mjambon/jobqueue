@@ -53,6 +53,10 @@ val filter_map :
 val filter : ?conc: int -> 'a list -> ('a -> bool Lwt.t) -> 'a list Lwt.t
   (** Analog to BatList.filter *)
 
+val exists : ?conc: int -> 'a list -> ('a -> bool Lwt.t) -> bool Lwt.t
+
+val for_all : ?conc: int -> 'a list -> ('a -> bool Lwt.t) -> bool Lwt.t
+
 
 (**/**)
 val tests : (string * (unit -> bool)) list

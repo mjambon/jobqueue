@@ -95,6 +95,40 @@ let filter ?conc l f =
   ) >>= fun l' ->
   return (BatList.filter_map (fun o -> o) l')
 
+exception Found (* private *)
+
+(* Return true as soon as true is found *)
+let exists ?conc l f =
+  catch
+    (fun () ->
+       iter ?conc l (fun x ->
+         f x >>= function
+         | true -> raise Found
+         | false -> return ()
+       ) >>= fun () ->
+       return false
+    )
+    (function
+      | Found -> return true
+      | e -> raise e
+    )
+
+(* Return false as soon as false is found *)
+let for_all ?conc l f =
+  catch
+    (fun () ->
+       iter ?conc l (fun x ->
+         f x >>= function
+         | false -> raise Found
+         | true -> return ()
+       ) >>= fun () ->
+       return true
+    )
+    (function
+      | Found -> return false
+      | e -> raise e
+    )
+
 module Test =
 struct
   exception Int of int
@@ -158,7 +192,7 @@ struct
   let test_filter_map () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t =
-      filter_map ~conc:10 l (fun x ->
+      filter_map ~conc:5 l (fun x ->
         if x mod 2 = 0 then return (Some (-x))
         else return None
       ) in
@@ -166,8 +200,28 @@ struct
 
   let test_filter () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
-    let t = filter ~conc:10 l (fun x -> return (x mod 2 = 0)) in
+    let t = filter ~conc:5 l (fun x -> return (x mod 2 = 0)) in
     Lwt_main.run t = [ 0; 2; 4; 6 ]
+
+  let test_exists () =
+    let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
+    let t = exists ~conc:5 l (fun x -> return (x = 6)) in
+    Lwt_main.run t = true
+
+  let test_not_exists () =
+    let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
+    let t = exists ~conc:5 l (fun x -> return (x = 8)) in
+    Lwt_main.run t = false
+
+  let test_for_all () =
+    let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
+    let t = for_all ~conc:5 l (fun x -> return (x < 8)) in
+    Lwt_main.run t = true
+
+  let test_not_for_all () =
+    let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
+    let t = for_all ~conc:5 l (fun x -> return (x < 6)) in
+    Lwt_main.run t = false
 
   let tests = [
     "exception order", test_exception_order;
@@ -175,6 +229,10 @@ struct
     "max concurrency", test_max_concurrency;
     "filter", test_filter;
     "filter_map", test_filter_map;
+    "exists", test_exists;
+    "not exists", test_not_exists;
+    "for_all", test_for_all;
+    "not for_all", test_not_for_all;
   ]
 end
 
