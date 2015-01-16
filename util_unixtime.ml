@@ -36,3 +36,9 @@ let to_time x =
 
 let now () =
   Unix.time ()
+
+let add t seconds =
+  of_float (t +. seconds)
+
+let sub t seconds =
+  add t (-. seconds)

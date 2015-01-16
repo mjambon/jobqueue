@@ -23,3 +23,7 @@ val to_time : t -> Util_time.t
 val of_time : Util_time.t -> t
 
 val now : unit -> t
+
+val add : t -> float -> t
+val sub : t -> float -> t
+  (* Add or subtract seconds *)
