@@ -2,6 +2,9 @@ open Printf
 
 type t = float
 
+let equal = ( = )
+let compare = compare
+
 let to_string x =
   sprintf "%.0f" x
 
