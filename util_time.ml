@@ -72,6 +72,28 @@ let compare a b = Pervasives.compare a.unixtime b.unixtime
 let min a b = if compare a b <= 0 then a else b
 let max a b = if compare a b >= 0 then a else b
 
+let get_date t =
+  let unixtime = t.unixtime in
+  let gmtime = Unix.gmtime unixtime in
+  let year = 1900 + gmtime.Unix.tm_year in
+  let month = gmtime.Unix.tm_mon + 1 in
+  let day = gmtime.Unix.tm_mday in
+  Printf.sprintf "%d-%d-%d" year month day
+
+let hour_of_day h date_time =
+  let gmtime = Unix.gmtime date_time.unixtime in
+  let time = {Unix.tm_sec = 0;
+    tm_min = 0;
+    tm_hour = h;
+    tm_mday = gmtime.Unix.tm_mday;
+    tm_mon = gmtime.Unix.tm_mon;
+    tm_year = gmtime.Unix.tm_year;
+    tm_wday = gmtime.Unix.tm_wday;
+    tm_yday = gmtime.Unix.tm_yday;
+    tm_isdst = gmtime.Unix.tm_isdst} in
+  let (unixtime, _) = Unix.mktime time in
+  of_float unixtime
+
 let test_recover () =
   let conv t =
     let x1 = of_float t in
