@@ -47,9 +47,6 @@ val compare : t -> t -> int
 val min : t -> t -> t
 val max : t -> t -> t
 
-val get_date : t -> string
-  (* return a string of format YYYY-MM-DD *)
-
 val hour_of_day : int -> t -> t
   (* return a new date with the time set to the specified hour *)
 
