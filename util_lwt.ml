@@ -26,6 +26,15 @@ let bind5 a b c d e func =
   e >>= fun e' ->
   func a' b' c' d' e'
 
+let bind6 a b c d e f func =
+  a >>= fun a' ->
+  b >>= fun b' ->
+  c >>= fun c' ->
+  d >>= fun d' ->
+  e >>= fun e' ->
+  f >>= fun f' ->
+  func a' b' c' d' e' f'
+
 let join2 a b =
   bind2 a b (fun a b -> return (a, b))
 

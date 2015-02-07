@@ -20,6 +20,15 @@ val bind5 :
   'd Lwt.t ->
   'e Lwt.t -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f Lwt.t) -> 'f Lwt.t
 
+(* Bind to 6 threads running concurrently *)
+val bind6 :
+  'a Lwt.t ->
+  'b Lwt.t ->
+  'c Lwt.t ->
+  'd Lwt.t ->
+  'e Lwt.t ->
+  'f Lwt.t -> ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g Lwt.t) -> 'g Lwt.t
+
 (* Combine the result of 2 threads running concurrently into a tuple *)
 val join2 : 'a Lwt.t -> 'b Lwt.t -> ('a * 'b) Lwt.t
 
