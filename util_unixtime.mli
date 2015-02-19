@@ -31,17 +31,31 @@ val add : t -> float -> t
 val sub : t -> float -> t
   (* Add or subtract seconds *)
 
-val add_year : t -> int -> t
-val add_mon : t -> int -> t
-val add_day : t -> int -> t
-val add_hour : t -> int -> t
-val add_min : t -> int -> t
-val add_sec : t -> int -> t
-val set_year : t -> int -> t
-val set_mon : t -> int -> t
-val set_day : t -> int -> t
-val set_hour : t -> int -> t
-val set_min : t -> int -> t
+val add_day : t -> float -> t
+val sub_day : t -> float -> t
+  (* Add or subtract days *)
+
+val add_hour : t -> float -> t
+val sub_hour : t -> float -> t
+  (* Add or subtract hours *)
+
+val add_min : t -> float -> t
+val sub_min : t -> float -> t
+  (* Add or subtract minutes *)
+
 val set_sec : t -> int -> t
+  (*
+    Set seconds past the minute
+
+    For example:
+    The float 1424225951. representing the time 2015-02-17T18:19:11
+
+    (set_sec 1424225951. 59) would yield 1424225999. which represents
+    the time 2015-02-17T18:19:59
+  *)
+val set_min : t -> int -> t
+  (* set minutes past the hour *)
+val set_hour : t -> int -> t
+  (* set hours into the day *)
 
 val tests : (string * (unit -> bool)) list
