@@ -31,17 +31,17 @@ val add : t -> float -> t
 val sub : t -> float -> t
   (* Add or subtract seconds *)
 
-val update_year : int -> Unix.tm -> Unix.tm
-val update_mon : int -> Unix.tm -> Unix.tm
-val update_day : int -> Unix.tm -> Unix.tm
-val update_hour : int -> Unix.tm -> Unix.tm
-val update_min : int -> Unix.tm -> Unix.tm
-val update_sec : int -> Unix.tm -> Unix.tm
-val set_year : int -> Unix.tm -> Unix.tm
-val set_mon : int -> Unix.tm -> Unix.tm
-val set_day : int -> Unix.tm -> Unix.tm
-val set_hour : int -> Unix.tm -> Unix.tm
-val set_min : int -> Unix.tm -> Unix.tm
-val set_sec : int -> Unix.tm -> Unix.tm
+val add_year : t -> int -> t
+val add_mon : t -> int -> t
+val add_day : t -> int -> t
+val add_hour : t -> int -> t
+val add_min : t -> int -> t
+val add_sec : t -> int -> t
+val set_year : t -> int -> t
+val set_mon : t -> int -> t
+val set_day : t -> int -> t
+val set_hour : t -> int -> t
+val set_min : t -> int -> t
+val set_sec : t -> int -> t
 
 val tests : (string * (unit -> bool)) list

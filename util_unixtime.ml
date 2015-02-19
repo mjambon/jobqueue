@@ -46,84 +46,90 @@ let add t seconds =
 let sub t seconds =
   add t (-. seconds)
 
-let update_year year t =
-  {t with Unix.tm_year = t.Unix.tm_year + year}
+let add_year time year =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_year = t.Unix.tm_year + year} in
+  u
 
-let update_mon mon t =
-  {t with Unix.tm_mon = t.Unix.tm_mon + mon}
+let add_mon time mon =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_mon = t.Unix.tm_mon + mon} in
+  u
 
-let update_day day t =
-  {t with Unix.tm_mday = t.Unix.tm_mday + day}
+let add_day time day =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_mday = t.Unix.tm_mday + day} in
+  u
 
-let update_hour hour t =
-  {t with Unix.tm_hour = t.Unix.tm_hour + hour}
+let add_hour time hour =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_hour = t.Unix.tm_hour + hour} in
+  u
 
-let update_min min t =
-  {t with Unix.tm_min = t.Unix.tm_min + min}
+let add_min time min =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_min = t.Unix.tm_min + min} in
+  u
 
-let update_sec sec t =
-  {t with Unix.tm_sec = t.Unix.tm_sec + sec}
+let add_sec time sec =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_sec = t.Unix.tm_sec + sec} in
+  u
 
-let set_year year t =
-  {t with Unix.tm_year = year}
+let set_year time year =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_year = year} in
+  u
 
-let set_mon mon t =
-  {t with Unix.tm_mon = mon}
+let set_mon time mon =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_mon = mon} in
+  u
 
-let set_day day t =
-  {t with Unix.tm_mday = day}
+let set_day time day =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_mday = day} in
+  u
 
-let set_hour hour t =
-  {t with Unix.tm_hour = hour}
+let set_hour time hour =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_hour = hour} in
+  u
 
-let set_min min t =
-  {t with Unix.tm_min = min}
+let set_min time min =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_min = min} in
+  u
 
-let set_sec sec t =
-  {t with Unix.tm_sec = sec}
+let set_sec time sec =
+  let t = Unix.localtime time in
+  let (u, _) = Unix.mktime {t with Unix.tm_sec = sec} in
+  u
 
-let test_update () =
-  let time = {Unix.tm_sec = 11;
-    tm_min = 19;
-    tm_hour = 18;
-    tm_mday = 17;
-    tm_mon = 1;
-    tm_year = 115;
-    tm_wday = 2;
-    tm_yday = 47;
-    tm_isdst = false}
-  in
-  let (year_update, _) = Unix.mktime (update_year 9 time) in
-  let (mon_update, _) = Unix.mktime (update_mon 9 time) in
-  let (day_update, _) = Unix.mktime (update_day 9 time) in
-  let (hour_update, _) = Unix.mktime (update_hour 9 time) in
-  let (min_update, _) = Unix.mktime (update_min 9 time) in
-  let (sec_update, _) = Unix.mktime (update_sec 9 time) in
-  assert (year_update = 1708222751.);
-  assert (mon_update = 1447813151.);
-  assert (day_update = 1425003551.);
-  assert (hour_update = 1424258351.);
-  assert (min_update = 1424226491.);
-  assert (sec_update = 1424225960.);
+let test_add () =
+  let time = 1424225951. in
+  let year_add = add_year time 9 in
+  let mon_add = add_mon time 9 in
+  let day_add = add_day time 9 in
+  let hour_add = add_hour time 9 in
+  let min_add = add_min time 9 in
+  let sec_add = add_sec time 9 in
+  assert (year_add = 1708222751.);
+  assert (mon_add = 1447813151.);
+  assert (day_add = 1425003551.);
+  assert (hour_add = 1424258351.);
+  assert (min_add = 1424226491.);
+  assert (sec_add = 1424225960.);
   true
 
 let test_set () =
-  let time = {Unix.tm_sec = 11;
-    tm_min = 19;
-    tm_hour = 18;
-    tm_mday = 17;
-    tm_mon = 1;
-    tm_year = 115;
-    tm_wday = 2;
-    tm_yday = 47;
-    tm_isdst = false}
-  in
-  let (year_set, _) = Unix.mktime (set_year 99 time) in
-  let (mon_set, _) = Unix.mktime (set_mon 99 time) in
-  let (day_set, _) = Unix.mktime (set_day 99 time) in
-  let (hour_set, _) = Unix.mktime (set_hour 99 time) in
-  let (min_set, _) = Unix.mktime (set_min 99 time) in
-  let (sec_set, _) = Unix.mktime (set_sec 99 time) in
+  let time = 1424225951. in
+  let year_set = set_year time 99 in
+  let mon_set = set_mon time 99 in
+  let day_set = set_day time 99 in
+  let hour_set = set_hour time 99 in
+  let min_set = set_min time 99 in
+  let sec_set = set_sec time 99 in
   assert (year_set = 919304351.);
   assert (mon_set = 1681780751.);
   assert (day_set = 1431307151.);
@@ -133,6 +139,6 @@ let test_set () =
   true
 
 let tests = [
-  "update times", test_update;
+  "update times", test_add;
   "set times", test_set;
 ]
