@@ -96,6 +96,21 @@ let test_group_by_key () =
                        2, [4];
                        3, [6; 7]]
 
+(*
+   Common functions with arguments in a better order,
+   and which won't blow the stack
+*)
+let iter l f = BatList.iter f l
+let map l f = BatList.map l f
+let fold_left acc l f = BatList.fold_left f acc l
+let fold_right l acc f = BatList.fold_right l acc f
+let filter l f = BatList.filter f l
+let filter_map l f = BatList.filter_map l f
+let for_all l f = BatList.for_all f l
+let exists l f = BatList.exists f l
+let find l f = BatList.find f l
+
+
 let tests = [
   "unique", test_unique;
   "inter", test_inter;
