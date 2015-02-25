@@ -59,4 +59,22 @@ sig
   val ( >= ) : t -> t -> bool
 end
 
+(*
+   Same type, exported rounded down to the second
+   and serialized into plain decimal notation
+   e.g. "1424829100"
+
+   Note that of_float and of_string do not perform any rounding.
+*)
+module As_unixtime : sig
+  type time = t
+  type t = time
+  val of_float : float -> t
+  val to_float : t -> float (* rounded *)
+  val wrap : float -> t (* same as of_float *)
+  val unwrap : t -> float (* same as to_float *)
+  val of_string : string -> t
+  val to_string : t -> string (* rounded *)
+end
+
 val tests : (string * (unit -> bool)) list

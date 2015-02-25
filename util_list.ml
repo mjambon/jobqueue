@@ -101,11 +101,11 @@ let test_group_by_key () =
    and which won't blow the stack
 *)
 let iter l f = BatList.iter f l
-let map l f = BatList.map l f
+let map l f = BatList.map f l
 let fold_left acc l f = BatList.fold_left f acc l
-let fold_right l acc f = BatList.fold_right l acc f
+let fold_right l acc f = BatList.fold_right f l acc
 let filter l f = BatList.filter f l
-let filter_map l f = BatList.filter_map l f
+let filter_map l f = BatList.filter_map f l
 let for_all l f = BatList.for_all f l
 let exists l f = BatList.exists f l
 let find l f = BatList.find f l

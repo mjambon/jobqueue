@@ -108,7 +108,46 @@ struct
   let ( >= ) a b = compare a b >= 0
 end
 
+module As_unixtime = struct
+  type time = t
+  type t = time
+
+  let round x =
+    if x < 0. then
+      let y = ceil (x -. 0.5) in
+      if y = -0. then 0.
+      else y
+    else
+      floor (x +. 0.5)
+
+  let of_float = of_float
+
+  let to_float x =
+    round x.unixtime
+
+  let wrap = of_float
+  let unwrap = to_float
+
+  let of_string s =
+    of_float (float_of_string s)
+
+  let to_string x =
+    Printf.sprintf "%.0f" (to_float x)
+
+  let test_unixtime () =
+    assert (round 0.1 = 0.);
+    assert (round (-0.1) = -1.);
+    assert (round (-10.1) = -11.);
+    assert (to_float (of_float 3.5) = 3.);
+    assert (to_string (of_float 3.5) = "3");
+    assert ((of_string "77.333").unixtime > 77.);
+    assert (to_float (of_string "77.333") = 77.);
+    assert (to_string (of_string "77.333") = "77");
+    true
+end
+
 let tests = [
   "round milliseconds", test_round_milliseconds;
   "recover", test_recover;
+  "unixtime", As_unixtime.test_unixtime;
 ]
