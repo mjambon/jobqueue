@@ -112,18 +112,11 @@ module As_unixtime = struct
   type time = t
   type t = time
 
-  let round x =
-    if x < 0. then
-      let y = ceil (x -. 0.5) in
-      if y = -0. then 0.
-      else y
-    else
-      floor (x +. 0.5)
-
+  let round_down = floor
   let of_float = of_float
 
   let to_float x =
-    round x.unixtime
+    round_down x.unixtime
 
   let wrap = of_float
   let unwrap = to_float
@@ -135,9 +128,10 @@ module As_unixtime = struct
     Printf.sprintf "%.0f" (to_float x)
 
   let test_unixtime () =
-    assert (round 0.1 = 0.);
-    assert (round (-0.1) = -1.);
-    assert (round (-10.1) = -11.);
+    assert (round_down 0.1 = 0.);
+    assert (round_down 0.9 = 0.);
+    assert (round_down (-0.1) = -1.);
+    assert (round_down (-10.1) = -11.);
     assert (to_float (of_float 3.5) = 3.);
     assert (to_string (of_float 3.5) = "3");
     assert ((of_string "77.333").unixtime > 77.);
