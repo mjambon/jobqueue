@@ -63,6 +63,9 @@ let map_default default opt f =
   | None -> return default
   | Some x -> f x
 
+let rec repeat n op =
+  if 0 < n then op n >>= fun () -> repeat (n-1) op
+  else return ()
 
 let rec iter_stream chunk_size stream f =
   Lwt_stream.nget chunk_size stream >>= function

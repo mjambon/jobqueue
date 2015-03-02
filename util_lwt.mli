@@ -53,6 +53,9 @@ val find_map_right : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 val map_default : 'b -> 'a option -> ('a -> 'b Lwt.t) -> 'b Lwt.t
 
+(* Repeat for n times *)
+val repeat : int -> (int -> unit Lwt.t) -> unit Lwt.t
+
 val iter_stream : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
 (*
    Parallel iteration over a stream.
