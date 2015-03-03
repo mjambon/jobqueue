@@ -19,11 +19,13 @@ FILES[] =
   util_url
   util_html
   util_conc
-  util_lwt
   util_list
   util_geo
   util_model
   util_worker
+  util_shutdown
+  util_lwt
+  util_lwt_main
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
