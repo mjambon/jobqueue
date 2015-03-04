@@ -19,7 +19,7 @@ val shutdown_on_sigterm : float -> unit
 val wait_for_shutdown : unit -> unit Lwt.t
   (*
      Create an lwt thread that returns when the system starts shutting down;
-     returns immediately if the system has already shutting down.
+     returns immediately if the system has already started shutting down.
   *)
 
 val cancel_on_shutdown : 'a Lwt.t -> 'a Lwt.t
