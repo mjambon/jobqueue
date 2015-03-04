@@ -40,6 +40,32 @@ val add : t -> float -> t
 val sub : t -> float -> t
   (* subtract seconds *)
 
+val add_day : t -> float -> t
+val sub_day : t -> float -> t
+  (* Add or subtract days *)
+
+val add_hour : t -> float -> t
+val sub_hour : t -> float -> t
+  (* Add or subtract hours *)
+
+val add_min : t -> float -> t
+val sub_min : t -> float -> t
+  (* Add or subtract minutes *)
+
+val set_sec : t -> int -> t
+  (*
+    Set seconds past the minute
+
+    For example:
+    The float 1424225951. representing the time 2015-02-17T18:19:11
+
+    (set_sec 1424225951. 59) would yield 1424225999. which represents
+    the time 2015-02-17T18:19:59
+  *)
+val set_min : t -> int -> t
+  (* set minutes past the hour *)
+
+
 val next : t -> t
   (* return a new date whose string representation is 1 ms later. *)
 
@@ -57,6 +83,24 @@ sig
   val ( > ) : t -> t -> bool
   val ( <= ) : t -> t -> bool
   val ( >= ) : t -> t -> bool
+end
+
+(*
+   Same type, exported rounded down to the second
+   and serialized into plain decimal notation
+   e.g. "1424829100"
+
+   Note that of_float and of_string do not perform any rounding.
+*)
+module As_unixtime : sig
+  type time = t
+  type t = time
+  val of_float : float -> t
+  val to_float : t -> float (* rounded *)
+  val wrap : float -> t (* same as of_float *)
+  val unwrap : t -> float (* same as to_float *)
+  val of_string : string -> t
+  val to_string : t -> string (* rounded *)
 end
 
 val tests : (string * (unit -> bool)) list

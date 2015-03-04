@@ -55,6 +55,55 @@ let now () = of_float (Unix.gettimeofday ())
 let add x seconds = of_float (x.unixtime +. seconds)
 let sub x seconds = of_float (x.unixtime -. seconds)
 
+let add_min x minutes =
+  add x (minutes *. 60.)
+
+let sub_min x minutes =
+  sub x (minutes *. 60.)
+
+let add_hour x hours =
+  add x (hours *. 3600.)
+
+let sub_hour x hours =
+  sub x (hours *. 3600.)
+
+let add_day x days =
+  add x (days *. 86400.)
+
+let sub_day x days =
+  sub x (days *. 86400.)
+
+let set_min time min =
+  let t = Unix.localtime time.unixtime in
+  let (u, _) = Unix.mktime {t with Unix.tm_min = min} in
+  of_float u
+
+let set_sec time sec =
+  let t = Unix.localtime time.unixtime in
+  let (u, _) = Unix.mktime {t with Unix.tm_sec = sec} in
+  of_float u
+
+let test_add () =
+  let time = of_float 1424225951. in
+  let day_add = add_day time 9. in
+  let hour_add = add_hour time 9. in
+  let min_add = add_min time 9. in
+  let sec_add = add time 9. in
+  assert (day_add.unixtime = 1425003551.);
+  assert (hour_add.unixtime = 1424258351.);
+  assert (min_add.unixtime = 1424226491.);
+  assert (sec_add.unixtime = 1424225960.);
+  true
+
+let test_set () =
+  let time = of_float 1424225951. in
+  let min_set = set_min time 99 in
+  let sec_set = set_sec time 99 in
+  assert (min_set.unixtime = 1424230751.);
+  assert (sec_set.unixtime = 1424226039.);
+  true
+
+
 (* add a millisecond, or more if it's not enough to change the string
    representation. *)
 let next x =
@@ -99,6 +148,8 @@ let test_recover () =
   assert (conv 0.1003);
   true
 
+
+
 module Op =
 struct
   let ( = ) a b = compare a b = 0
@@ -108,7 +159,42 @@ struct
   let ( >= ) a b = compare a b >= 0
 end
 
+module As_unixtime = struct
+  type time = t
+  type t = time
+
+  let round_down = floor
+  let of_float = of_float
+
+  let to_float x =
+    round_down x.unixtime
+
+  let wrap = of_float
+  let unwrap = to_float
+
+  let of_string s =
+    of_float (float_of_string s)
+
+  let to_string x =
+    Printf.sprintf "%.0f" (to_float x)
+
+  let test_unixtime () =
+    assert (round_down 0.1 = 0.);
+    assert (round_down 0.9 = 0.);
+    assert (round_down (-0.1) = -1.);
+    assert (round_down (-10.1) = -11.);
+    assert (to_float (of_float 3.5) = 3.);
+    assert (to_string (of_float 3.5) = "3");
+    assert ((of_string "77.333").unixtime > 77.);
+    assert (to_float (of_string "77.333") = 77.);
+    assert (to_string (of_string "77.333") = "77");
+    true
+end
+
 let tests = [
   "round milliseconds", test_round_milliseconds;
   "recover", test_recover;
+  "unixtime", As_unixtime.test_unixtime;
+  "update times", test_add;
+  "set times", test_set;
 ]
