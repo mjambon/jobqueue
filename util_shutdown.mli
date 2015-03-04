@@ -1,5 +1,3 @@
-exception Shutdown
-
 val is_shutting_down : unit -> bool
 
 val shutdown : float -> unit
