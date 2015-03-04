@@ -29,8 +29,6 @@ let wait_for_shutdown () =
   else
     Lwt_condition.wait shutdown_condition
 
-exception Shutdown
-
 let cancel_on_shutdown x =
   ignore
     (pick [ (x >>= fun y -> return ());
