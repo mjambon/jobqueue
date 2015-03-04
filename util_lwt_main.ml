@@ -1,5 +1,5 @@
 (*
-   Substitute for the lwt event loop (Lwt_main.run),
+   Substitute for the lwt event loop (Util_lwt_main.run),
    which catches the TERM signal and gives 5 seconds
    for the threads to finish what they were doing,
    most importantly release external locks.

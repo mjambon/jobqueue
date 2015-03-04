@@ -149,7 +149,7 @@ struct
           | _ -> return false
         )
     in
-    Lwt_main.run t
+    Util_lwt_main.run t
 
   let test_map_order () =
     let conc = 2 in
@@ -158,7 +158,7 @@ struct
       map ~conc l (fun x -> return (x + 10)) >>= fun res ->
       return (res = List.map (fun x -> x + 10) l)
     in
-    Lwt_main.run t
+    Util_lwt_main.run t
 
   let test_max_concurrency () =
     let debug = false in
@@ -187,7 +187,7 @@ struct
       >>= fun () ->
       return !success
     in
-    Lwt_main.run t
+    Util_lwt_main.run t
 
   let test_filter_map () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
@@ -196,32 +196,32 @@ struct
         if x mod 2 = 0 then return (Some (-x))
         else return None
       ) in
-    Lwt_main.run t = [ 0; -2; -4; -6 ]
+    Util_lwt_main.run t = [ 0; -2; -4; -6 ]
 
   let test_filter () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t = filter ~conc:5 l (fun x -> return (x mod 2 = 0)) in
-    Lwt_main.run t = [ 0; 2; 4; 6 ]
+    Util_lwt_main.run t = [ 0; 2; 4; 6 ]
 
   let test_exists () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t = exists ~conc:5 l (fun x -> return (x = 6)) in
-    Lwt_main.run t = true
+    Util_lwt_main.run t = true
 
   let test_not_exists () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t = exists ~conc:5 l (fun x -> return (x = 8)) in
-    Lwt_main.run t = false
+    Util_lwt_main.run t = false
 
   let test_for_all () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t = for_all ~conc:5 l (fun x -> return (x < 8)) in
-    Lwt_main.run t = true
+    Util_lwt_main.run t = true
 
   let test_not_for_all () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t = for_all ~conc:5 l (fun x -> return (x < 6)) in
-    Lwt_main.run t = false
+    Util_lwt_main.run t = false
 
   let tests = [
     "exception order", test_exception_order;

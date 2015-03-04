@@ -10,17 +10,17 @@ let shutdown grace_period =
     shutting_down := true;
     Lwt_condition.signal shutdown_condition ();
     (* Give other threads some time to finish what they were doing *)
-    Log.logf `Info "SHUTDOWN in %g seconds" grace_period;
+    Printf.printf "SHUTDOWN in %g seconds\n%!" grace_period;
     ignore (
       Lwt_unix.sleep grace_period >>= fun () ->
-      Log.logf `Info "STOP";
+      Printf.printf "STOP\n%!";
       exit 0
     )
   )
 
 let shutdown_on_sigterm grace_period =
   let _handler_id =
-    Lwt_unix.on_signal 15 (fun signum -> shutdown grace_period) in
+    Lwt_unix.on_signal Sys.sigterm (fun signum -> shutdown grace_period) in
   ()
 
 let wait_for_shutdown () =
