@@ -33,6 +33,8 @@ val to_float : t -> float
   (* Parse a date into seconds since 1970-01-01 UTC *)
 
 val now : unit -> t
+val is_past : t -> bool
+val is_future : t -> bool
 
 val add : t -> float -> t
   (* add seconds *)

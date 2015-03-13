@@ -52,6 +52,9 @@ let format ~fmt x =
 
 let now () = of_float (Unix.gettimeofday ())
 
+let is_past x = x.unixtime < Unix.gettimeofday ()
+let is_future x = x.unixtime > Unix.gettimeofday ()
+
 let add x seconds = of_float (x.unixtime +. seconds)
 let sub x seconds = of_float (x.unixtime -. seconds)
 
