@@ -23,6 +23,7 @@ FILES[] =
   util_model
   util_worker
   util_shutdown
+  util_stream
   util_lwt
   util_lwt_main
 
