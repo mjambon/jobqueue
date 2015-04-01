@@ -86,13 +86,73 @@ let wrap ?(headers = []) ?body meth uri =
       failwith ("HTTP client error on " ^ url_string)
     )
 
-let head ?headers uri = wrap ?headers `HEAD uri
-let get ?headers uri = wrap ?headers `GET uri
-let post ?headers ?body uri = wrap ?headers ?body `POST uri
-let head ?headers uri = wrap ?headers `HEAD uri
-let delete ?headers uri = wrap ?headers `DELETE uri
-let put ?headers ?body uri = wrap ?headers `PUT ?body uri
-let patch ?headers ?body uri = wrap ?headers `PATCH ?body uri
+
+module type Wrapped = sig
+  type result
+  val get :
+    ?headers:(string * string) list ->
+    Uri.t -> result Lwt.t
+  val post :
+    ?headers:(string * string) list ->
+    ?body:string ->
+    Uri.t -> result Lwt.t
+  val head :
+    ?headers:(string * string) list ->
+    Uri.t -> result Lwt.t
+  val delete :
+    ?headers:(string * string) list ->
+    Uri.t -> result Lwt.t
+  val put :
+    ?headers:(string * string) list ->
+    ?body:string ->
+    Uri.t -> result Lwt.t
+  val patch :
+    ?headers:(string * string) list ->
+    ?body:string ->
+    Uri.t -> result Lwt.t
+end
+
+module Original = struct
+  type result = response
+  let head ?headers uri = wrap ?headers `HEAD uri
+  let get ?headers uri = wrap ?headers `GET uri
+  let post ?headers ?body uri = wrap ?headers ?body `POST uri
+  let head ?headers uri = wrap ?headers `HEAD uri
+  let delete ?headers uri = wrap ?headers `DELETE uri
+  let put ?headers ?body uri = wrap ?headers `PUT ?body uri
+  let patch ?headers ?body uri = wrap ?headers `PATCH ?body uri
+end
+
+include Original
+
+module type Wrapper = sig
+  type orig_result
+  type result
+  val wrap : (unit -> orig_result Lwt.t) -> result Lwt.t
+end
+
+module Wrap
+    (U: Wrapped)
+    (W: Wrapper with type orig_result = U.result):
+  Wrapped with type result = W.result
+=
+struct
+
+  type result = W.result
+
+  let get ?headers uri =
+    W.wrap (fun () -> U.get ?headers uri)
+  let post ?headers ?body uri =
+    W.wrap (fun () -> U.post ?headers ?body uri)
+  let head ?headers uri =
+    W.wrap (fun () -> U.head ?headers uri)
+  let delete ?headers uri =
+    W.wrap (fun () -> U.delete ?headers uri)
+  let put ?headers ?body uri =
+    W.wrap (fun () -> U.put ?headers ?body uri)
+  let patch ?headers ?body uri =
+    W.wrap (fun () -> U.patch ?headers ?body uri)
+end
 
 module Elasticsearch_lwt =
 struct
