@@ -48,6 +48,26 @@ let to_string x = x.string
 let wrap = of_string
 let unwrap = to_string
 
+let compare d1 d2 =
+  Pervasives.compare (d1.year, d1.month, d1.day) (d2.year, d2.month, d2.day)
+
+let now () =
+  let tm = Unix.(gmtime (gettimeofday ())) in
+  let year = tm.Unix.tm_year + 1900 in
+  let month = tm.Unix.tm_mon + 1 in
+  let day = tm.Unix.tm_mday in
+  let string =
+    (* RFC 3339 "date" *)
+    sprintf "%04d-%02d-%02d" year month day
+  in
+  {
+    year; month; day;
+    string;
+  }
+
+let is_past x = compare x (now ()) < 0
+let is_future x = compare x (now ()) > 0
+
 let test_conversions () =
   let conv s = to_string (of_string s) in
   assert (conv "-1999-07-24" = "-1999-07-24");

@@ -10,6 +10,11 @@ type t = private {
 
 val create : year:int -> month:int -> day:int -> t
 
+val compare : t -> t -> int
+val now : unit -> t
+val is_past : t -> bool
+val is_future : t -> bool
+
 val of_string : string -> t
 val of_string_opt : string -> t option
 val to_string : t -> string
