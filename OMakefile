@@ -13,6 +13,7 @@ FILES[] =
   util_rng
   util_exn
   util_text
+  util_memcache
   util_http_client
   util_signal
   util_url
