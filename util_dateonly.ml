@@ -35,6 +35,36 @@ let create ~year ~month ~day =
     string;
   }
 
+let of_float f =
+  let tm = Unix.gmtime f in
+  let year = tm.Unix.tm_year + 1900 in
+  let month = tm.Unix.tm_mon + 1 in
+  let day = tm.Unix.tm_mday in
+  let string =
+    (* RFC 3339 "date" *)
+    sprintf "%04d-%02d-%02d" year month day
+  in
+  {
+    year; month; day;
+    string;
+  }
+
+let to_float x =
+  Nldate.since_epoch {
+    Nldate.year = x.year;
+    month = x.month;
+    day = x.day;
+    hour = 0;
+    minute = 0;
+    second = 0;
+    nanos = 0;
+    zone = 0;
+    week_day = -1;
+  }
+
+let previous_day d =
+  of_float ((to_float d) -. 86400.)
+
 let of_string s =
   Scanf.sscanf s "%d-%d-%d"
     (fun year month day -> create ~year ~month ~day)
