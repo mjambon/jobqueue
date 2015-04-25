@@ -5,7 +5,7 @@ let plural n =
   else ""
 
 let print_omitting buf n =
-  bprintf buf "... (omitting %i line%s)\n" n (plural n)
+  bprintf buf "... (omitting %i repeated line%s)\n" n (plural n)
 
 let rec scan_lines tbl buf s pos ellipsis =
   let len = String.length s in
@@ -52,6 +52,8 @@ let custom_exception_printer = function
               (Unix.error_message kind) func arg)
   | _ -> None
 
+let () = Printexc.register_printer custom_exception_printer
+
 let string_of_exn e =
   (*
     When using netsys (from Ocamlnet), some bug causes the backtrace
@@ -59,9 +61,23 @@ let string_of_exn e =
     Therefore it is important to call Printexc.get_backtrace first.
   *)
   let backtrace = Printexc.get_backtrace () in
-  let s =
-    match custom_exception_printer e with
-        Some s -> s
-      | None -> Printexc.to_string e
-  in
+  let s = Printexc.to_string e in
   s ^ "\n" ^ make_compact backtrace
+
+let constructor (e : exn) : string =
+  let r = Obj.repr e in
+  assert (Obj.is_block r);
+  assert (Obj.size r >= 1);
+  let boxed_string = Obj.field r 0 in
+  assert (Obj.is_block boxed_string);
+  assert (Obj.size boxed_string = 1);
+  let string = Obj.field boxed_string 0 in
+  assert (Obj.tag string = Obj.string_tag);
+  Obj.obj string
+
+let trace e =
+  let backtrace = Printexc.get_backtrace () in
+  constructor e ^ "\n" ^ make_compact backtrace
+
+let trace_hash e =
+  String.sub (Digest.to_hex (Digest.string (trace e))) 0 8
