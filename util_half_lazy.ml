@@ -25,10 +25,15 @@ let create_lwt f =
     | Some ret -> ret (* cached pre-computed result *)
     | None ->
         match !in_progress with
-        | Some comp -> comp (* cached computation in progress *)
+        | Some comp ->
+            (* cached computation in progress *)
+            comp
         | None ->
             (* no computation in progress *)
-            let comp = f () in
+            let comp =
+              catch f
+                (fun e -> in_progress := None; raise e)
+            in
             in_progress := Some comp;
             comp >>= fun _res ->
             in_progress := None;
@@ -61,22 +66,28 @@ let test_lwt_exception () =
         raise (Int !counter)
       )
     in
-    let t1 =
+    let wrap () =
       catch
-        (fun () -> z () >>= fun _ -> assert false)
+        (fun () ->
+           z () >>= fun _ ->
+           assert false
+        )
         (function
-          | Int n -> assert (n = 1); return ()
-          | e -> raise e)
+          | Int n -> return n
+          | _ -> assert false)
     in
-    let t2 =
-      catch
-        (fun () -> z () >>= fun _ -> assert false)
-        (function
-          | Int n -> assert (n = 1); return ()
-          | e -> raise e)
-    in
-    Lwt.join [ t1; t2 ] >>= fun () ->
+    Lwt_list.map_p (fun f -> f ()) [ wrap; wrap ] >>= fun l ->
+    assert (l = [ 1; 1 ]);
+    assert (!counter = 1);
 
-    Lwt_list.map_p z [ (); (); () ] >>= fun result_from_attempt2 ->
-    return (result_from_attempt2 = [ 2; 2; 2 ])
+    Lwt_list.map_s (fun f -> f ()) [ wrap; wrap ] >>= fun l ->
+    assert (l = [ 2; 3 ]);
+    assert (!counter = 3);
+
+    return true
   )
+
+let tests = [
+  "lwt caching", test_lwt_caching;
+  "lwt exception", test_lwt_exception;
+]
