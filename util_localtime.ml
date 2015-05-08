@@ -28,8 +28,8 @@ let create ~year ~month ~day ~hour ~min ~sec =
   if not (sec >= 0. && sec < 60.) then
     invalid "sec" (sprintf "%g" sec);
   let string =
-    (* RFC 3339 timestamp - the timezone suffix 'Z' is for compliance only *)
-    sprintf "%04d-%02d-%02dT%02d:%02d:%06.3fZ"
+    (* RFC 3339 timestamp - without timezone suffix *)
+    sprintf "%04d-%02d-%02dT%02d:%02d:%06.3f"
       year month day hour min sec
   in
   {
@@ -126,8 +126,8 @@ let to_float x =
 
 let test_conversions () =
   let conv s = to_string (of_string s) in
-  assert (conv "1996-12-20T00:39:57Z" = "1996-12-20T00:39:57.000Z");
-  assert (conv "12345-12-20T23:59:57.56789" = "12345-12-20T23:59:57.568Z");
+  assert (conv "1996-12-20T00:39:57Z" = "1996-12-20T00:39:57.000");
+  assert (conv "12345-12-20T23:59:57.56789" = "12345-12-20T23:59:57.568");
   true
 
 let tests = [
