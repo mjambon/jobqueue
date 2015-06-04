@@ -152,7 +152,6 @@ let test_recover () =
   true
 
 
-
 module Op =
 struct
   let ( = ) a b = compare a b = 0
