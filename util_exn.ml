@@ -1,5 +1,8 @@
 open Printf
 
+exception Traced of exn * string
+  (* An exception with its stack trace *)
+
 let plural n =
   if abs n >= 2 then "s"
   else ""
@@ -54,15 +57,23 @@ let custom_exception_printer = function
 
 let () = Printexc.register_printer custom_exception_printer
 
-let string_of_exn e =
+let get_compact_backtrace () =
+  let backtrace = Printexc.get_backtrace () in
+  make_compact backtrace
+
+let rec string_of_exn ?(earlier_trace = "") e =
   (*
     When using netsys (from Ocamlnet), some bug causes the backtrace
     to be incorrect if Printexc.to_string is called first.
     Therefore it is important to call Printexc.get_backtrace first.
   *)
-  let backtrace = Printexc.get_backtrace () in
-  let s = Printexc.to_string e in
-  s ^ "\n" ^ make_compact backtrace
+  match e with
+  | Traced (e0, trace0) ->
+      string_of_exn ~earlier_trace: (earlier_trace ^ trace0) e0
+  | e ->
+      let backtrace = get_compact_backtrace () in
+      let s = Printexc.to_string e in
+      s ^ "\n" ^ earlier_trace ^ backtrace
 
 let constructor (e : exn) : string =
   let r = Obj.repr e in
@@ -75,9 +86,16 @@ let constructor (e : exn) : string =
   assert (Obj.tag string = Obj.string_tag);
   Obj.obj string
 
-let trace e =
-  let backtrace = Printexc.get_backtrace () in
-  constructor e ^ "\n" ^ make_compact backtrace
+let rec trace ?(earlier_trace = "") e =
+  match e with
+  | Traced (e0, trace0) ->
+      trace ~earlier_trace: (earlier_trace ^ trace0) e0
+  | e ->
+      let backtrace = get_compact_backtrace () in
+      constructor e ^ "\n" ^ earlier_trace ^ backtrace
+
+let make_traced e =
+  Traced (e, get_compact_backtrace ())
 
 let trace_hash e =
   String.sub (Digest.to_hex (Digest.string (trace e))) 0 8

@@ -62,7 +62,10 @@ let map ?conc l f =
       fun (i, x) ->
         Lwt.catch
           (fun () -> f x >>= fun y -> return (true, (i, Val y)))
-          (fun e -> return (false, (i, Exn e)))
+          (fun e ->
+             (* We store the stack trace along with the exception
+                so it doesn't get lost. *)
+             return (false, (i, Exn (Util_exn.make_traced e))))
     )
   in
   Lwt_stream.to_list outstrm >>= fun l ->
