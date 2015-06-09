@@ -1,3 +1,13 @@
+(** Concurrent processing of streams and lists of lwt jobs,
+    with a limit on how many jobs can run concurrently.
+
+    Note that exceptions are wrapped within [Util_exn.Traced] so as to
+    preserve the stack trace where the exception was caught.
+    Catching and inspecting exceptions raised during a [Util_conc] iteration
+    is not recommended, but if you need to do it, you'll have to
+    unwrap the exception using for example [Util_exn.unwrap_traced].
+*)
+
 val default_conc : int
   (** The default value for the [conc] parameter,
       which is the maximum number of elements processed concurrently.

@@ -149,9 +149,10 @@ struct
           ) >>= fun l ->
           return false
         )
-        (function
-          | Int (3 | 4) -> return true
-          | _ -> return false
+        (fun e ->
+           match Util_exn.unwrap_traced e with
+           | Int (3 | 4) -> return true
+           | _ -> return false
         )
     in
     Util_lwt_main.run t
