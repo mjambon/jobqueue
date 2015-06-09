@@ -54,6 +54,10 @@ let iter_stream ?conc instrm f =
 
 type 'a result = Val of 'a | Exn of exn
 
+exception Found
+  (* Private exception used to indicate that an element was found
+     in the stream. *)
+
 let map ?conc l f =
   let a = Array.mapi (fun i x -> (i, x)) (Array.of_list l) in
   let instrm = Lwt_stream.of_array a in
@@ -63,9 +67,19 @@ let map ?conc l f =
         Lwt.catch
           (fun () -> f x >>= fun y -> return (true, (i, Val y)))
           (fun e ->
-             (* We store the stack trace along with the exception
-                so it doesn't get lost. *)
-             return (false, (i, Exn (Util_exn.make_traced e))))
+             let wrapped_exn =
+               match e with
+               | Found ->
+                   (* Private exception that will be caught right away
+                      and is not an error. Doesn't need to store the
+                      stack trace. *)
+                   e
+               | e ->
+                   (* We store the stack trace along with the exception
+                      so it doesn't get lost. *)
+                   Util_exn.make_traced e
+             in
+             return (false, (i, Exn wrapped_exn)))
     )
   in
   Lwt_stream.to_list outstrm >>= fun l ->
@@ -98,8 +112,6 @@ let filter ?conc l f =
   ) >>= fun l' ->
   return (BatList.filter_map (fun o -> o) l')
 
-exception Found (* private *)
-
 (* Return true as soon as true is found *)
 let exists ?conc l f =
   catch
@@ -111,10 +123,9 @@ let exists ?conc l f =
        ) >>= fun () ->
        return false
     )
-    (fun e ->
-       match Util_exn.unwrap_traced e with
-       | Found -> return true
-       | _ -> raise e
+    (function
+      | Found -> return true
+      | e -> raise e
     )
 
 (* Return false as soon as false is found *)
@@ -128,10 +139,9 @@ let for_all ?conc l f =
        ) >>= fun () ->
        return true
     )
-    (fun e ->
-       match Util_exn.unwrap_traced e with
-       | Found -> return false
-       | _ -> raise e
+    (function
+      | Found -> return false
+      | e -> raise e
     )
 
 module Test =
