@@ -97,5 +97,9 @@ let rec trace ?(earlier_trace = "") e =
 let make_traced e =
   Traced (e, get_compact_backtrace ())
 
+let rec unwrap_traced = function
+  | Traced (e, t) -> unwrap_traced e
+  | e -> e
+
 let trace_hash e =
   String.sub (Digest.to_hex (Digest.string (trace e))) 0 8

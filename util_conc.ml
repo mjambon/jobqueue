@@ -111,9 +111,10 @@ let exists ?conc l f =
        ) >>= fun () ->
        return false
     )
-    (function
-      | Found -> return true
-      | e -> raise e
+    (fun e ->
+       match Util_exn.unwrap_traced e with
+       | Found -> return true
+       | _ -> raise e
     )
 
 (* Return false as soon as false is found *)
@@ -127,9 +128,10 @@ let for_all ?conc l f =
        ) >>= fun () ->
        return true
     )
-    (function
-      | Found -> return false
-      | e -> raise e
+    (fun e ->
+       match Util_exn.unwrap_traced e with
+       | Found -> return false
+       | _ -> raise e
     )
 
 module Test =

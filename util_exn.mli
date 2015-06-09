@@ -20,6 +20,10 @@ val make_traced : exn -> exn
   (** Wrap the given exception within a [Traced] exception
       which stores the current stack trace. *)
 
+val unwrap_traced : exn -> exn
+  (** Unwrap the given exception stored in a [Traced] exception
+      recursively until the exception is no longer of the [Traced] kind. *)
+
 val trace_hash : exn -> string
   (** 32-bit, hex-encoded hash of [trace e] (see above),
       whose purpose is to identify the error. *)
