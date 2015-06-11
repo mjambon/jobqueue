@@ -1,4 +1,5 @@
 open Printf
+open Lwt
 
 type response =
   (Cohttp.Code.status_code * (string * string) list * string)
@@ -55,37 +56,20 @@ let wrap ?(headers = []) ?body meth uri =
         None -> None
       | Some s -> Some (Cohttp_lwt_body.of_string s)
   in
-  let x =
-    Lwt.bind
-      (Cohttp_lwt_unix.Client.call ~headers ?body ~chunked:false meth uri)
-      (fun (resp, body) ->
-        Lwt.bind
-          (Cohttp_lwt_body.to_string body)
-          (fun body_string ->
-            let status = Cohttp_lwt_unix.Response.status resp in
-            let resp_headers = Cohttp_lwt_unix.Response.headers resp in
-            let t2 = Unix.gettimeofday () in
-            if !trace then
-              print_resp (Lazy.force req_id)
-                status resp_headers body_string (t2 -. t1);
-            Lwt.return (
-              status,
-              Cohttp.Header.to_list resp_headers,
-              body_string
-            )
-          )
-      )
-  in
-  Lwt.catch
-    (fun () -> x)
-    (fun e ->
-      let backtrace = Util_exn.string_of_exn e in
-      let url_string = Uri.to_string uri in
-      Printf.eprintf "[error] Exception in Cohttp client with URI %s: %s\n%!"
-        url_string backtrace;
-      failwith ("HTTP client error on " ^ url_string)
-    )
-
+  Cohttp_lwt_unix.Client.call ~headers ?body ~chunked:false meth uri
+  >>= fun (resp, body) ->
+  Cohttp_lwt_body.to_string body >>= fun body_string ->
+  let status = Cohttp_lwt_unix.Response.status resp in
+  let resp_headers = Cohttp_lwt_unix.Response.headers resp in
+  let t2 = Unix.gettimeofday () in
+  if !trace then
+    print_resp (Lazy.force req_id)
+      status resp_headers body_string (t2 -. t1);
+  return (
+    status,
+    Cohttp.Header.to_list resp_headers,
+    body_string
+  )
 
 module type Wrapped = sig
   type result
