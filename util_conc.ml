@@ -9,30 +9,15 @@ let rec launch_worker running instrm f push =
         if !running = 0 then
           push None;
         return ()
-    | Some x ->
-        Lwt.catch
-          (fun () ->
-            f x >>= fun y ->
-            return (Some y)
-          )
-          (fun e ->
-            (try !Lwt.async_exception_hook e
-             with _ -> ());
-            return None
-          )
-        >>= fun result ->
-        (match result with
-          | None ->
-              Lwt.ignore_result (launch_worker running instrm f push)
-          | Some y ->
-              (* don't launch the next job until the result is consumed *)
-              let lazy_result = lazy (
-                Lwt.ignore_result (launch_worker running instrm f push);
-                y
-              ) in
-              push (Some lazy_result)
-        );
-        return ()
+    | Some x -> f x >>= fun y ->
+         (* don't launch the next job until the result is consumed *)
+         let lazy_result = lazy (
+           Lwt.ignore_result (launch_worker running instrm f push);
+           y
+         ) in
+         push (Some lazy_result);
+         return ()
+
 
 let map_stream ?(conc = default_conc) instrm f =
   if conc <= 0 then
@@ -52,8 +37,6 @@ let iter_stream ?conc instrm f =
   in
   Lwt_stream.fold (fun (b, ()) acc -> b && acc) outstrm true
 
-type 'a result = Val of 'a | Exn of exn
-
 exception Found
   (* Private exception used to indicate that an element was found
      in the stream. *)
@@ -63,33 +46,10 @@ let map ?conc l f =
   let instrm = Lwt_stream.of_array a in
   let outstrm =
     map_stream ?conc instrm (
-      fun (i, x) ->
-        Lwt.catch
-          (fun () -> f x >>= fun y -> return (true, (i, Val y)))
-          (fun e ->
-             let wrapped_exn =
-               match e with
-               | Found ->
-                   (* Private exception that will be caught right away
-                      and is not an error. Doesn't need to store the
-                      stack trace. *)
-                   e
-               | e ->
-                   (* We store the stack trace along with the exception
-                      so it doesn't get lost. *)
-                   Util_exn.make_traced e
-             in
-             return (false, (i, Exn wrapped_exn)))
+      fun (i, x) -> f x >>= fun y -> return (i, y)
     )
   in
   Lwt_stream.to_list outstrm >>= fun l ->
-  let l =
-    List.fold_left (fun acc (b, (i, result)) ->
-      match result with
-          Val y -> (i, y) :: acc
-        | Exn e -> raise e
-    ) [] l
-  in
   let r = List.sort (fun (i, _) (j, _) -> compare j i) l in
   let l = List.rev_map snd r in
   return l
@@ -146,27 +106,6 @@ let for_all ?conc l f =
 
 module Test =
 struct
-  exception Int of int
-  let test_exception_order () =
-    let conc = 2 in
-    let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
-    let t =
-      Lwt.catch
-        (fun () ->
-          map ~conc l (fun x ->
-            if x >= 3 then raise (Int x)
-            else return ()
-          ) >>= fun l ->
-          return false
-        )
-        (fun e ->
-           match Util_exn.unwrap_traced e with
-           | Int (3 | 4) -> return true
-           | _ -> return false
-        )
-    in
-    Util_lwt_main.run t
-
   let test_map_order () =
     let conc = 2 in
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
@@ -205,6 +144,25 @@ struct
     in
     Util_lwt_main.run t
 
+  let test_exception () =
+    let conc = 2 in
+    let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
+    let t =
+      Lwt.catch
+        (fun () ->
+          map ~conc l (fun x ->
+            if x >= 3 then raise Exit
+            else return ()
+          ) >>= fun l ->
+          return false
+        )
+        (function
+           | Exit -> return true
+           | _ -> return false
+        )
+    in
+    Util_lwt_main.run t
+
   let test_filter_map () =
     let l = [ 0; 1; 2; 3; 4; 5; 6; 7 ] in
     let t =
@@ -240,7 +198,6 @@ struct
     Util_lwt_main.run t = false
 
   let tests = [
-    "exception order", test_exception_order;
     "map order", test_map_order;
     "max concurrency", test_max_concurrency;
     "filter", test_filter;
