@@ -198,6 +198,7 @@ struct
     Util_lwt_main.run t = false
 
   let tests = [
+    "test exception", test_exception;
     "map order", test_map_order;
     "max concurrency", test_max_concurrency;
     "filter", test_filter;
