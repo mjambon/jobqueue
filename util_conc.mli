@@ -14,31 +14,6 @@ val default_conc : int
       This value is 20.
   *)
 
-(** {1} Concurrent iterations over streams *)
-
-val map_stream :
-  ?conc: int ->
-  'a Lwt_stream.t ->
-  ('a -> (bool * 'b) Lwt.t) ->
-  (bool * 'b) Lwt_stream.t
-  (**
-     [map_stream ~conc strm f] converts each element of a stream,
-     [conc] at a time. Order is not preserved.
-
-     Exceptions are handled with [Lwt.async_exception_hook] and do not
-     interrupt the output stream.
-     If [f] returns [false], it breaks the output stream as soon as all pending
-     jobs have returned.
-  *)
-
-val iter_stream :
-  ?conc: int ->
-  'a Lwt_stream.t ->
-  ('a -> bool Lwt.t) ->
-  bool Lwt.t
-  (** Same as [map_stream] but no output stream is produced.
-      The result indicates whether the input stream was processed entirely. *)
-
 (** {1} Concurrent iterations over lists, processing at most N elements
     at a time
 *)
