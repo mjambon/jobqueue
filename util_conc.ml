@@ -60,6 +60,9 @@ let for_all ?conc l f =
 
 (** Tests **)
 
+let return_later x =
+  Lwt_unix.sleep 0. >>= fun () -> Lwt.return x
+
 let test_map () =
   let conc = 2 in
   let n = ref 0 in
@@ -69,10 +72,10 @@ let test_map () =
       assert (!n <= conc);
       Lwt_unix.sleep 0.01 >>= fun () ->
       decr n;
-      return (i * 2)
+      return_later (i * 2)
     )
   in
-  Util_lwt_main.run t = [0;2;4;6;8;10;12;14]
+  Util_lwt_main.run t = [2;4;6;8;10;12;14]
 
 let tests = [
   "map", test_map;
