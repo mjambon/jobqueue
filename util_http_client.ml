@@ -6,6 +6,9 @@ type response =
 
 let trace = ref false
 
+(* Don't run more than this many http requests at the same time *)
+let throttle = Pool.create_throttler 100
+
 let print_headers headers =
   let l = Cohttp.Header.to_list headers in
   List.iter (fun (k, v) -> printf "  %s: %s\n" k v) l
@@ -32,7 +35,7 @@ let print_resp req_id status headers body latency =
   printf "Response body:\n%s\n" (Util_text.prettify body);
   flush stdout
 
-let wrap ?(headers = []) ?body meth uri =
+let wrap_call ?(headers = []) ?body meth uri =
   let headers = Cohttp.Header.of_list headers in
   let headers =
     match Cohttp.Header.get headers "content-length", body with
@@ -70,6 +73,9 @@ let wrap ?(headers = []) ?body meth uri =
     Cohttp.Header.to_list resp_headers,
     body_string
   )
+
+let wrap ?headers ?body meth uri =
+  throttle (fun () -> wrap_call ?headers ?body meth uri)
 
 module type Wrapped = sig
   type result
