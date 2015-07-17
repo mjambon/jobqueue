@@ -3,7 +3,7 @@
 
    It works with lwt threads too, so we can do:
 
-     let get_account = memoize User_account.get_account
+     let get_account = memoize User_account.get
 
      (* first call fetches the account *)
      get_account uid >>= fun account ->
