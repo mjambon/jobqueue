@@ -78,15 +78,6 @@ val max : t -> t -> t
 val hour_of_day : int -> t -> t
   (* return a new date with the time set to the specified hour *)
 
-module Op :
-sig
-  val ( = ) : t -> t -> bool
-  val ( < ) : t -> t -> bool
-  val ( > ) : t -> t -> bool
-  val ( <= ) : t -> t -> bool
-  val ( >= ) : t -> t -> bool
-end
-
 (*
    Same type, exported rounded down to the second
    and serialized into plain decimal notation
@@ -104,5 +95,11 @@ module As_unixtime : sig
   val of_string : string -> t
   val to_string : t -> string (* rounded *)
 end
+
+val ( = ) : t -> t -> bool
+val ( < ) : t -> t -> bool
+val ( > ) : t -> t -> bool
+val ( <= ) : t -> t -> bool
+val ( >= ) : t -> t -> bool
 
 val tests : (string * (unit -> bool)) list
