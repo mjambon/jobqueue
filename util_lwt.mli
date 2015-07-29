@@ -45,6 +45,12 @@ val join5 :
   'b Lwt.t ->
   'c Lwt.t -> 'd Lwt.t -> 'e Lwt.t -> ('a * 'b * 'c * 'd * 'e) Lwt.t
 
+(* true iff at least one input evaluates to true *)
+val or_ : bool Lwt.t list -> bool Lwt.t
+
+(* true iff all inputs evaluate to true *)
+val and_ : bool Lwt.t list -> bool Lwt.t
+
 (* Map elements of a list from left to right until a match is found *)
 val find_map_left : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
