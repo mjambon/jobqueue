@@ -47,6 +47,12 @@ let join4 a b c d =
 let join5 a b c d e =
   bind5 a b c d e (fun a b c d e -> return (a, b, c, d, e))
 
+let or_ l =
+  Lwt_list.exists_p (fun x -> x) l
+
+let and_ l =
+  Lwt_list.for_all_p (fun x -> x) l
+
 let rec find_map_left l f =
   match l with
   | [] -> return None
