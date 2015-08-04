@@ -138,6 +138,17 @@ let hour_of_day h date_time =
   let (unixtime, _) = Unix.mktime time in
   of_float unixtime
 
+let calculate_diff_seconds a b =
+  let a_float = to_float a in
+  let b_float = to_float b in
+  let diff_seconds = a_float -. b_float in
+  diff_seconds
+
+let calculate_diff_days a b =
+  let diff_seconds = calculate_diff_seconds a b in
+  let diff_days = diff_seconds /. 86400. in
+  diff_days
+
 let test_recover () =
   let conv t =
     let x1 = of_float t in
@@ -200,3 +211,4 @@ let tests = [
   "update times", test_add;
   "set times", test_set;
 ]
+

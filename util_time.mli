@@ -78,6 +78,12 @@ val max : t -> t -> t
 val hour_of_day : int -> t -> t
   (* return a new date with the time set to the specified hour *)
 
+val calculate_diff_seconds : t -> t -> float
+  (* return difference in seconds between two timestamps *)
+
+val calculate_diff_days : t -> t -> float
+  (* return difference in days between two timestamps *)
+
 module Op :
 sig
   val ( = ) : t -> t -> bool
