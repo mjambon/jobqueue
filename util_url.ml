@@ -1,3 +1,10 @@
+module Op = struct
+  let (@^@) (k,f,v) query =
+    match v with
+    | None   -> query
+    | Some v -> (k, [f v]) :: query
+end
+
 let encode s = Nlencoding.Url.encode ~plus:false s
 let decode s = Nlencoding.Url.decode ~plus:false s
 

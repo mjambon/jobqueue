@@ -10,25 +10,43 @@ let plural n =
 let print_omitting buf n =
   bprintf buf "... (omitting %i repeated line%s)\n" n (plural n)
 
+(*
+   Hash table that doesn't exceptions
+   (based on the current implementation in hashtbl.ml)
+*)
+module H = Hashtbl.Make (
+struct
+  type t = int
+  let equal i j = i = j
+  let hash i = i land max_int
+end)
+
+(*
+   Accumulate unique lines into a buffer,
+   without raising an exception because it would disturb the stack trace.
+*)
 let rec scan_lines tbl buf s pos ellipsis =
   let len = String.length s in
   let h = ref 0 in
   let pos2 = ref pos in
-  (try
-     for i = pos to len - 1 do
-       match s.[i] with
-           '\n' ->
-             pos2 := i + 1;
-             raise Exit
-         | c -> h := 223 * !h + (Char.code c)
-     done;
-     pos2 := len
-   with Exit -> ());
+  let continue = ref true in
+  while !continue do
+    let i = !pos2 in
+    if i <= len - 1 then (
+      (match s.[i] with
+       | '\n' -> continue := false
+       | c -> h := 223 * !h + (Char.code c)
+      );
+      incr pos2
+    )
+    else
+      continue := false;
+  done;
   let ellipsis2 =
-    if Hashtbl.mem tbl !h then
+    if H.mem tbl !h then
       ellipsis + 1
     else (
-      Hashtbl.add tbl !h ();
+      H.add tbl !h ();
       if ellipsis > 0 then
         print_omitting buf ellipsis;
       Buffer.add_substring buf s pos (!pos2 - pos);
@@ -44,10 +62,22 @@ let rec scan_lines tbl buf s pos ellipsis =
 
 (* Replace any sequence of lines that already occurred by "...\n" *)
 let make_compact s =
-  let tbl = Hashtbl.create 20 in
+  let tbl = H.create 20 in
   let buf = Buffer.create 1000 in
   scan_lines tbl buf s 0 0;
   Buffer.contents buf
+
+let test_compact_trace () =
+  assert (make_compact "" = "");
+  assert (make_compact "a\nb" = "a\nb");
+  assert (make_compact "a\nb\n" = "a\nb\n");
+  assert (make_compact "a\na" = "a\n... (omitting 1 repeated line)\n");
+  assert (make_compact "a\na\na" = "a\n... (omitting 2 repeated lines)\n");
+  assert (make_compact "x\na\nbc\na\nbc\nx"
+          = "x\na\nbc\n... (omitting 3 repeated lines)\n");
+  assert (make_compact "x\na\nbc\na\nbc\nx\ny"
+          = "x\na\nbc\n... (omitting 3 repeated lines)\ny");
+  true
 
 let custom_exception_printer = function
   | Unix.Unix_error (kind, func, arg) ->
@@ -103,3 +133,7 @@ let rec unwrap_traced = function
 
 let trace_hash e =
   String.sub (Digest.to_hex (Digest.string (trace e))) 0 8
+
+let tests = [
+  "compact trace", test_compact_trace;
+]

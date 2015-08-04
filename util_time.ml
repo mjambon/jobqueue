@@ -162,16 +162,6 @@ let test_recover () =
   assert (conv 0.1003);
   true
 
-
-module Op =
-struct
-  let ( = ) a b = compare a b = 0
-  let ( < ) a b = compare a b < 0
-  let ( > ) a b = compare a b > 0
-  let ( <= ) a b = compare a b <= 0
-  let ( >= ) a b = compare a b >= 0
-end
-
 module As_unixtime = struct
   type time = t
   type t = time
@@ -203,6 +193,12 @@ module As_unixtime = struct
     assert (to_string (of_string "77.333") = "77");
     true
 end
+
+let ( = ) a b = compare a b = 0
+let ( < ) a b = compare a b < 0
+let ( > ) a b = compare a b > 0
+let ( <= ) a b = compare a b <= 0
+let ( >= ) a b = compare a b >= 0
 
 let tests = [
   "round milliseconds", test_round_milliseconds;
