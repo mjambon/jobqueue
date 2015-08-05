@@ -138,16 +138,26 @@ let hour_of_day h date_time =
   let (unixtime, _) = Unix.mktime time in
   of_float unixtime
 
-let calculate_diff_seconds a b =
+let diff_seconds a b =
   let a_float = to_float a in
   let b_float = to_float b in
   let diff_seconds = a_float -. b_float in
   diff_seconds
 
-let calculate_diff_days a b =
-  let diff_seconds = calculate_diff_seconds a b in
+let diff_days a b =
+  let diff_seconds = diff_seconds a b in
   let diff_days = diff_seconds /. 86400. in
   diff_days
+
+let test_diffs () =
+  let eql a b =
+    abs_float (a -. b) < 0.001 in
+  let cur = now () in
+  let ten_minutes_from_now = add_min cur 10. in
+  let ten_days_from_now = add_day cur 10. in
+  assert (eql (diff_seconds ten_minutes_from_now cur) 600.);
+  assert (eql (diff_days ten_days_from_now cur) 10.);
+  true
 
 let test_recover () =
   let conv t =
@@ -206,5 +216,6 @@ let tests = [
   "unixtime", As_unixtime.test_unixtime;
   "update times", test_add;
   "set times", test_set;
+  "diffs", test_diffs;
 ]
 
