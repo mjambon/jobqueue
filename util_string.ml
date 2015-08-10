@@ -3,13 +3,13 @@ let of_string s = s
 let to_string s = s
 
 let ascii_lowercase s =
-  let s' = String.copy s in
+  let s' = Bytes.of_string s in
   for i = 0 to String.length s - 1 do
     match s.[i] with
-    | 'A'..'Z' as c -> s'.[i] <- Char.chr (Char.code c + 32)
+    | 'A'..'Z' as c -> Bytes.set s' i (Char.chr (Char.code c + 32))
     | _ -> ()
   done;
-  s'
+  Bytes.to_string s'
 
 let test_ascii_lowercase () =
   ascii_lowercase "AbCd\xc9F" = "abcd\xc9f"

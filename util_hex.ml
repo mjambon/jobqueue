@@ -10,13 +10,13 @@ let hex_digits_upper = [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';
 let encode ?(upper=false) s =
   let hex_digits = if upper then hex_digits_upper else hex_digits_lower in
   let l = String.length s in
-  let t = String.make (2*l) ' ' in
+  let t = Bytes.make (2*l) ' ' in
   for n = 0 to l - 1 do
     let x = Char.code s.[n] in
-    t.[2*n]   <- hex_digits.( x lsr 4 );
-    t.[2*n+1] <- hex_digits.( x land 15 );
+    Bytes.set t (2*n) hex_digits.( x lsr 4 );
+    Bytes.set t (2*n+1) hex_digits.( x land 15 );
   done;
-  t
+  Bytes.to_string t
 
 exception Malformed
 
@@ -39,14 +39,14 @@ let decode s =
   if len mod 2 = 1 then
     error "odd length" s;
   let t_len = len / 2 in
-  let t = String.make t_len ' ' in
+  let t = Bytes.make t_len ' ' in
   try
     for n = 0 to t_len - 1 do
       let high = decode_char s.[2*n] in
       let low = decode_char s.[2*n+1] in
       let code = (high lsl 4) lor low in
-      t.[n] <- Char.chr code
+      Bytes.set t n (Char.chr code)
     done;
-    t
+    Bytes.to_string t
   with Malformed ->
     error "invalid input" s
