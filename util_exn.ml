@@ -105,23 +105,13 @@ let rec string_of_exn ?(earlier_trace = "") e =
       let s = Printexc.to_string e in
       s ^ "\n" ^ earlier_trace ^ backtrace
 
-(* Lightweight function to extract the constructor of an exception *)
-let constructor (e : exn) : string =
-  assert (Sys.ocaml_version = "4.02.3");
-  (* copied from printexc.ml *)
-  let x = Obj.repr e in
-  if Obj.tag x <> 0 then
-    Obj.magic (Obj.field x 0)
-  else
-    Obj.magic (Obj.field (Obj.field x 0) 0)
-
 let rec trace ?(earlier_trace = "") e =
   match e with
   | Traced (e0, trace0) ->
       trace ~earlier_trace: (earlier_trace ^ trace0) e0
   | e ->
       let backtrace = get_compact_backtrace () in
-      constructor e ^ "\n" ^ earlier_trace ^ backtrace
+      Printexc.exn_slot_name e ^ "\n" ^ earlier_trace ^ backtrace
 
 let make_traced e =
   Traced (e, get_compact_backtrace ())
