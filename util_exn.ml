@@ -1,5 +1,7 @@
 open Printf
 
+external reraise : exn -> _ = "%reraise"
+
 exception Traced of exn * string
   (* An exception with its stack trace *)
 

@@ -32,7 +32,7 @@ let create_lwt f =
             (* no computation in progress *)
             let comp =
               catch f
-                (fun e -> in_progress := None; raise e)
+                (fun e -> in_progress := None; Util_exn.reraise e)
             in
             in_progress := Some comp;
             comp >>= fun _res ->

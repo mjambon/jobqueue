@@ -89,5 +89,5 @@ let gethostbyname hostname =
       | Not_found ->
           failwith ("Cannot resolve host " ^ hostname)
       | e ->
-          raise e
+          Util_exn.reraise e
     )
