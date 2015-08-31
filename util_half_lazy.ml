@@ -72,9 +72,11 @@ let test_lwt_exception () =
            z () >>= fun _ ->
            assert false
         )
-        (function
-          | Int n -> return n
-          | _ -> assert false)
+        (fun e ->
+           match Trax.unwrap e with
+           | Int n -> return n
+           | _ -> assert false
+        )
     in
     Lwt_list.map_p (fun f -> f ()) [ wrap; wrap ] >>= fun l ->
     assert (l = [ 1; 1 ]);

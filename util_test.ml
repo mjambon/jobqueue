@@ -6,7 +6,7 @@ let run_test (k, f) =
   let success =
     try f ()
     with e ->
-      eprintf "Uncaught exception: %s\n" (Util_exn.string_of_exn e);
+      eprintf "Uncaught exception: %s\n" (Trax.to_string e);
       false
   in
   (k, success)
