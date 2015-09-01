@@ -89,5 +89,5 @@ let gethostbyname hostname =
       | Not_found ->
           failwith ("Cannot resolve host " ^ hostname)
       | e ->
-          Util_exn.reraise e
+          Trax.raise __LOC__ e
     )
