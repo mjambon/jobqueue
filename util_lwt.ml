@@ -85,9 +85,10 @@ let gethostbyname hostname =
     (fun () ->
        Lwt_unix.gethostbyname hostname
     )
-    (function
-      | Not_found ->
-          failwith ("Cannot resolve host " ^ hostname)
-      | e ->
-          Trax.raise __LOC__ e
+    (fun e ->
+       match Trax.unwrap e with
+       | Not_found ->
+           failwith ("Cannot resolve host " ^ hostname)
+       | e ->
+           Trax.raise __LOC__ e
     )
