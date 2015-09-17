@@ -1,3 +1,10 @@
+(*
+   Utilities complementing lwt
+*)
+
+(* Simple conditional without having to write 'else return ()' *)
+val do_if : bool -> (unit -> unit Lwt.t) -> unit Lwt.t
+
 (* Bind to 2 threads running concurrently *)
 val bind2 : 'a Lwt.t -> 'b Lwt.t -> ('a -> 'b -> 'c Lwt.t) -> 'c Lwt.t
 

@@ -1,5 +1,9 @@
 open Lwt
 
+let do_if bool f =
+  if bool then f ()
+  else return ()
+
 let bind2 a b func =
   a >>= fun a' ->
   b >>= fun b' ->
