@@ -52,6 +52,26 @@ let format ~fmt x =
 
 let now () = of_float (Unix.gettimeofday ())
 
+(* Convenience methods to get events for the entire day *)
+
+let start_of_today () =
+  let t = Unix.localtime (Unix.gettimeofday ()) in
+  let (u, _) = Unix.mktime {t with
+    Unix.tm_hour = 0;
+    Unix.tm_min = 0;
+    Unix.tm_sec = 0;
+  } in
+  of_float u
+
+let end_of_today () =
+  let t = Unix.localtime (Unix.gettimeofday ()) in
+  let (u, _) = Unix.mktime {t with
+    Unix.tm_hour = 23;
+    Unix.tm_min = 59;
+    Unix.tm_sec = 59;
+  } in
+  of_float u
+
 let is_past x = x.unixtime < Unix.gettimeofday ()
 let is_future x = x.unixtime > Unix.gettimeofday ()
 
@@ -105,7 +125,6 @@ let test_set () =
   assert (min_set.unixtime = 1424230751.);
   assert (sec_set.unixtime = 1424226039.);
   true
-
 
 (* add a millisecond, or more if it's not enough to change the string
    representation. *)
