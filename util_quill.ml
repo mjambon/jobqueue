@@ -232,9 +232,17 @@ let to_plaintext json_string =
   | _ -> "Could not retrieve notes."
 
 
-let test_json = "{\"ops\":[{\"attributes\":{\"color\":\"rgb(240, 102, 102)\",\"font\":\"serif\",\"size\":\"18px\",\"background\":\"rgb(187, 187, 187)\",\"bold\":true,\"italic\":true,\"underline\":true},\"insert\":\"this is a difficult test\"},{\"attributes\":{\"list\":true,\"align\":\"center\"},\"insert\":\"\\n\"}]}"
+let test_json = "{\"ops\":[{\"attributes\":{\"color\":\"rgb(240, 102, 102)\
+\",\"font\":\"serif\",\"size\":\"18px\",\"background\":\"rgb(187, 187, 187)\"\
+,\"bold\":true,\"italic\":true,\"underline\":true},\"insert\"\
+:\"this is a difficult test\"},{\"attributes\":{\"list\":true,\"align\"\
+:\"center\"},\"insert\":\"\\n\"}]}"
 let plaintext_ans = "this is a difficult test\n"
-let html_ans = "<ol><li style=\"text-align: center;\"><span style=\"font-family: serif;\"><span style=\"font-size: 18px;\"><span style=\"color: rgb(240, 102, 102);\"><span style=\"background-color: rgb(187, 187, 187);\"><b><i><u>this is a difficult test</u></i></b></span></span></span></span></li></ol>"
+let html_ans = "<ol><li style=\"text-align: center;\">\
+<span style=\"font-family: serif;\"><span style=\"font-size: 18px;\">\
+<span style=\"color: rgb(240, 102, 102);\">\
+<span style=\"background-color: rgb(187, 187, 187);\"><b><i><u>\
+this is a difficult test</u></i></b></span></span></span></span></li></ol>"
 let tests = [
   "Quill to Plaintext", (fun () -> plaintext_ans = (to_plaintext test_json));
   "Quill to HTML", (fun () -> html_ans = (to_html test_json))
