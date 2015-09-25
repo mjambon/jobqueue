@@ -30,6 +30,7 @@ FILES[] =
   util_half_lazy
   util_late_init
   util_cache
+  util_quill
 
 OCamlLibrary(util, $(FILES))
 Meta(util)
