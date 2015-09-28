@@ -1,0 +1,21 @@
+type top = {
+  ops: content list;
+}
+
+type content = {
+  text <json name="insert">: string;
+  ?attr <json name="attributes">: attributes option;
+}
+
+type attributes = {
+  ?bold: bool option;
+  ?italic: bool option;
+  ?underline: bool option;
+  ?color: string option;
+  ?background: string option;
+  ?font: string option;
+  ?size: string option;
+  ?link: string option;
+  ?list: bool option;
+  ?align: string option;
+}

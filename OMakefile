@@ -30,8 +30,12 @@ FILES[] =
   util_half_lazy
   util_late_init
   util_cache
+  util_quill_t
+  util_quill_j
+  util_quill_v
   util_quill
 
+Atdgen(util_quill, -j-std -j-defaults)
 OCamlLibrary(util, $(FILES))
 Meta(util)
 
