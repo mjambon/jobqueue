@@ -7,6 +7,12 @@ open Util_quill_j
 open Util_quill_t
 open Util_quill_v
 
+type section =
+| Ordered_list of section list
+| Div_section of content list
+| Li_section of content list
+| Empty_section
+
 let split_string elem = BatString.fold_left 
   (fun (s,l) c -> 
     if c = '\n' then ("",l @ [{text = (s ^ "\n"); attr = elem.attr}])
@@ -25,6 +31,26 @@ let group_by_newline (result,temp) elem =
   if String.contains elem.text '\n' then (result @ [temp @ [elem]], [])
   else (result, temp @ [elem])
 
+let group_by_list (l,temp) elem_list =
+  let is_list = List.fold_right
+    (fun x b -> if b then b else 
+                match x.attr with
+                | None -> b
+                | Some a -> 
+                  match a.list with
+                  | None -> false
+                  | Some y -> true)
+    elem_list false
+  in
+  if is_list then
+    match temp with
+    | Ordered_list (x) -> l, Ordered_list(x @ [Li_section(elem_list)])
+    | _ -> l, Ordered_list([Li_section(elem_list)])
+  else
+    match temp with
+    | Ordered_list (x) -> l @ [temp] @ [Div_section(elem_list)], Empty_section
+    | _ -> l @ [Div_section(elem_list)], Empty_section
+
 let create_span attribute value =
   let html_attribute = Util_html.encode attribute in
   let html_value = Util_html.encode value in
@@ -34,21 +60,18 @@ let create_link address =
   let html_address = Util_html.encode address in
   "<a href=\"" ^ html_address ^ "\">", "</a>"
 
-let create_div last_list align =
+let create_div align =
   let html_align = Util_html.encode align in
-  let end_list = if last_list then "</ol>" else "" in
-  end_list ^ "<div style=\"text-align: " ^ html_align ^ ";\">", "</div>"
+  "<div style=\"text-align: " ^ html_align ^ ";\">"
 
-let create_li last_list align =
+let create_li align =
   let html_align = Util_html.encode align in
-  let start_list = if last_list then "" else "<ol>" in
-  start_list ^ "<li style=\"text-align: " ^ html_align ^ ";\">", "</li>"
+  "<li style=\"text-align: " ^ html_align ^ ";\">"
 
-let get_elem (html, align, is_list) elem =
+let get_elem (html, align) elem =
   match elem.attr with
-  | None -> (html ^ elem.text,"",false)
+  | None -> (html ^ elem.text,"")
   | Some a ->
-  let list_info = BatOption.default false a.list in
   let align_info = BatOption.default "" a.align in
   let open_bold,close_bold =
   match a.bold with
@@ -96,27 +119,41 @@ let get_elem (html, align, is_list) elem =
   let close_tags = close_underline ^ close_italic ^ close_bold ^ close_link
                    ^ close_size ^ close_font ^ close_background ^ close_color
   in
-  html ^ open_tags ^ elem.text ^ close_tags, align_info, list_info
+  html ^ open_tags ^ elem.text ^ close_tags, align_info
 
-let print_list (html,last_list) newline_section =
-  let (elem_html, align, is_list) = 
-    List.fold_left get_elem ("","",false) newline_section
+let rec print_list html new_section =
+  let (section_html, align) = 
+    match new_section with
+    | Ordered_list x -> List.fold_left print_list ("") x, ""
+    | Div_section x -> List.fold_left get_elem ("","") x
+    | Li_section x -> List.fold_left get_elem ("","") x
+    | Empty_section -> "",""
   in
-  let (open_tags, close_tags) =
-    if is_list then create_li last_list align
-    else create_div last_list align
-  in
-  html ^ open_tags ^ elem_html ^ close_tags, is_list
+  match new_section with
+  | Ordered_list _ -> html ^ "<ol>" ^ section_html ^ "</ol>"
+  | Div_section _ -> html ^ (create_div align) ^ section_html ^ "</div>"
+  | Li_section _ -> html ^ (create_li align) ^ section_html ^ "</li>"
+  | Empty_section -> html
 
 (* Enter stringified json quill object, get html *)
 let to_html json_string =
   let top = Util_quill_j.top_of_string json_string in
+  match validate_top [] top with
+  | Some x -> "Invalid note format."
+  | None ->
   (* First separate elements by new line [a\nb; c\n] -> [a\n; b; c\n] *)
   let split_list = List.fold_left split_elem [] top.ops in
   (* Combine elements based on new line [a\n; b; c\n] -> [[a\n]; [b; c\n]] *)
-  let (final_list,_) = List.fold_left group_by_newline ([],[]) split_list in
+  let (combine_list,_) = List.fold_left group_by_newline ([],[]) split_list in
+  (* Combine sections based on list attribute *)
+  let (result,extra) = List.fold_left group_by_list ([],Empty_section) combine_list in
+  let final_list =
+    match extra with
+    | Ordered_list x -> result @ [extra]
+    | _ -> result
+  in
   (* Print list *)
-  let (html,_) = List.fold_left print_list ("",false) final_list in
+  let html = List.fold_left print_list ("") final_list in
   html
 
 (* Enter stringified JSON and get plaintext *)
@@ -138,7 +175,7 @@ let html_ans = "<ol><li style=\"text-align: center;\">\
 <span style=\"background-color: rgb(187, 187, 187);\">\
 <span style=\"font-family: serif;\">\
 <span style=\"font-size: 18px;\"><b><i><u>this is a difficult test\
-</u></i></b></span></span></span></span>\n</li>"
+</u></i></b></span></span></span></span>\n</li></ol>"
 
 let tests = [
   "Quill to Plaintext", (fun () -> plaintext_ans = (to_plaintext test_json));

@@ -18,4 +18,4 @@ type attributes = {
   ?link: string option;
   ?list: bool option;
   ?align: string option;
-}
+} <ocaml valid="Util_quill_valid.validate">

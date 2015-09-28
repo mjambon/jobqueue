@@ -30,6 +30,7 @@ FILES[] =
   util_half_lazy
   util_late_init
   util_cache
+  util_quill_valid
   util_quill_t
   util_quill_j
   util_quill_v
