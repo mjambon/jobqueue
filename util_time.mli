@@ -35,6 +35,8 @@ val to_float : t -> float
 val now : unit -> t
 val is_past : t -> bool
 val is_future : t -> bool
+val start_of_today : unit -> t
+val end_of_today : unit -> t
 
 val add : t -> float -> t
   (* add seconds *)
