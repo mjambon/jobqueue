@@ -70,7 +70,8 @@ let create_li align =
 
 let get_elem (html, align) elem =
   match elem.attr with
-  | None -> (html ^ elem.text,"")
+  | None ->  if html = "" && elem.text = "\n" then html ^ "<br>", ""
+             else (html ^ elem.text), ""
   | Some a ->
   let align_info = BatOption.default "" a.align in
   let open_bold,close_bold =
@@ -119,7 +120,9 @@ let get_elem (html, align) elem =
   let close_tags = close_underline ^ close_italic ^ close_bold ^ close_link
                    ^ close_size ^ close_font ^ close_background ^ close_color
   in
-  html ^ open_tags ^ elem.text ^ close_tags, align_info
+  (*special case break if no other text*)
+  let text = if html = "" && elem.text = "\n" then "<br>" else elem.text in
+  html ^ open_tags ^ text ^ close_tags, align_info
 
 let rec print_list html new_section =
   let (section_html, align) = 
