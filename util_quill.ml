@@ -195,7 +195,7 @@ let test_json = "{\"ops\":[{\"insert\":\"abcdef\"},{\"attributes\":\
 {\"insert\":\"duh\"},{\"attributes\":{\"list\":true,\"align\":\"center\"}\
 ,\"insert\":\"\\n\"}]}"
 
-let plaintext_ans = "this is a difficult test\n"
+let plaintext_ans = "abcdefgef\n\n\nwhatisthis\nlele\nduh\n"
 
 let html_ans = "<div style=\"text-align: ;\">abcdef<b>gef</b>\n</div>\
 <div style=\"text-align: ;\"><br></div><div style=\"text-align: ;\"><br>\
