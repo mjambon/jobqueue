@@ -11,30 +11,31 @@ type section =
 | Li_section of content list * string
 | Empty_section
 
-let split_string elem =
+let split_elem accum_list elem =
   let open Buffer in
   let buf = Buffer.create ((String.length elem.text) + 1) in
-  BatString.fold_left (fun (l,b) c ->
+  let string_list = BatString.fold_left (fun l c ->
+    add_char buf c;
     if c = '\n' then (
-      let new_b = add_char b c; contents b in
-      l @ [{text = new_b; attr = elem.attr}], (reset b; b)
+      let new_b = contents buf in
+      reset buf;
+      {text = new_b; attr = elem.attr} :: l
     ) else (
-      l, (add_char b c; b)
+      l
     ))
-  ([],buf) elem.text
-
-let split_elem l elem =
-  let open Buffer in
-  let (first,extra) = split_string elem in
-  match contents extra, first with
-  | "", [] -> l
-  | "", y -> l @ y
-  | x, [] -> l @ [{text = x; attr = elem.attr}]
-  | x, y -> l @ y @ [{text = x; attr = elem.attr}]
+    [] elem.text
+  in
+  let buf_text = contents buf in
+  let string_list =
+    if buf_text = "" then string_list
+    else {text = buf_text; attr = elem.attr} :: string_list
+  in
+  string_list :: accum_list
 
 let group_by_newline (result,temp) elem =
-  if String.contains elem.text '\n' then (result @ [temp @ [elem]], [])
-  else (result, temp @ [elem])
+  if String.contains elem.text '\n' then
+    ((List.rev(elem :: temp)) :: result, [])
+  else (result, elem :: temp)
 
 let group_by_list (l,temp) elem_list =
   let is_list,align = List.fold_right
@@ -52,9 +53,9 @@ let group_by_list (l,temp) elem_list =
   else
     match temp with
     | Ordered_list (x) ->
-      l @ [temp] @ [Div_section(elem_list,align)], Empty_section
+      Div_section(elem_list,align) :: temp :: l, Empty_section
     | _ ->
-      l @ [Div_section(elem_list,align)], Empty_section
+      Div_section(elem_list,align) :: l, Empty_section
 
 let create_span attribute value =
   let html_attribute = Util_html.encode attribute in
@@ -159,17 +160,18 @@ let to_html json_string =
   | None ->
   (* First separate elements by new line [a\nb; c\n] -> [a\n; b; c\n] *)
   let split_list = List.fold_left split_elem [] top.ops in
+  let split_list = List.rev (List.concat split_list) in
   (* Combine elements based on new line [a\n; b; c\n] -> [[a\n]; [b; c\n]] *)
   let (combine_list,_) = List.fold_left group_by_newline ([],[]) split_list in
+  let combine_list = List.rev combine_list in
   (* Combine sections based on list attribute *)
-  let (result,extra) =
+  let (final_list,extra) =
     List.fold_left group_by_list ([],Empty_section) combine_list
   in
-  let final_list =
-    match extra with
-    | Ordered_list x -> result @ [extra]
-    | _ -> result
+  let final_list = if extra <> Empty_section then extra :: final_list
+                   else final_list
   in
+  let final_list = List.rev final_list in
   (* Print list *)
   let html_buf = Buffer.create 1000 in
   List.iter (print_list html_buf) final_list;
@@ -178,23 +180,28 @@ let to_html json_string =
 (* Enter stringified JSON and get plaintext *)
 let to_plaintext json_string =
   let top = Util_quill_j.top_of_string json_string in
+  match Util_quill_v.validate_top [] top with
+  | Some x -> "Invalid note format."
+  | None ->
   List.fold_left (fun s o -> s ^ o.text) "" top.ops
 
 
-let test_json = "{\"ops\":[{\"attributes\":{\"color\":\"rgb(240, 102, 102)\
-\",\"font\":\"serif\",\"size\":\"18px\",\"background\":\"rgb(187, 187, 187)\"\
-,\"bold\":true,\"italic\":true,\"underline\":true},\"insert\"\
-:\"this is a difficult test\"},{\"attributes\":{\"list\":true,\"align\"\
-:\"center\"},\"insert\":\"\\n\"}]}"
+let test_json = "{\"ops\":[{\"insert\":\"abcdef\"},{\"attributes\":\
+{\"bold\":true},\"insert\":\"gef\"},{\"insert\":\"\\n\\n\\n\"},\
+{\"attributes\":{\"underline\":true,\"bold\":true},\"insert\":\"what\"},\
+{\"attributes\":{\"underline\":true},\"insert\":\"is\"},{\"attributes\":\
+{\"underline\":true,\"italic\":true},\"insert\":\"this\"},\
+{\"insert\":\"\\nlele\"},{\"attributes\":{\"list\":true},\"insert\":\"\\n\"},\
+{\"insert\":\"duh\"},{\"attributes\":{\"list\":true,\"align\":\"center\"}\
+,\"insert\":\"\\n\"}]}"
 
 let plaintext_ans = "this is a difficult test\n"
 
-let html_ans = "<ol><li style=\"text-align: center;\">\
-<span style=\"color: rgb(240, 102, 102);\">\
-<span style=\"background-color: rgb(187, 187, 187);\">\
-<span style=\"font-family: serif;\">\
-<span style=\"font-size: 18px;\"><b><i><u>this is a difficult test\
-</u></i></b></span></span></span></span>\n</li></ol>"
+let html_ans = "<div style=\"text-align: ;\">abcdef<b>gef</b>\n</div>\
+<div style=\"text-align: ;\"><br></div><div style=\"text-align: ;\"><br>\
+</div><div style=\"text-align: ;\"><b><u>what</u></b><u>is</u><i><u>this</u>\
+</i>\n</div><ol><li style=\"text-align: ;\">lele\n</li>\
+<li style=\"text-align: center;\">duh\n</li></ol>"
 
 let tests = [
   "Quill to Plaintext", (fun () -> plaintext_ans = (to_plaintext test_json));
