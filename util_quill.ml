@@ -3,25 +3,30 @@
  * It takes a quilljs Delta object (stored in JSON) and
  * converts it either to HTML or to Plaintext.
  *)
-open Util_quill_j
 open Util_quill_t
-open Util_quill_v
 
 type section =
 | Ordered_list of section list
-| Div_section of content list
-| Li_section of content list
+| Div_section of content list * string
+| Li_section of content list * string
 | Empty_section
 
-let split_string elem = BatString.fold_left 
-  (fun (s,l) c -> 
-    if c = '\n' then ("",l @ [{text = (s ^ "\n"); attr = elem.attr}])
-    else (s ^ (String.make 1 c),l))
-  ("",[]) elem.text
+let split_string elem =
+  let open Buffer in
+  let buf = Buffer.create ((String.length elem.text) + 1) in
+  BatString.fold_left (fun (l,b) c ->
+    if c = '\n' then (
+      let new_b = add_char b c; contents b in
+      l @ [{text = new_b; attr = elem.attr}], (reset b; b)
+    ) else (
+      l, (add_char b c; b)
+    ))
+  ([],buf) elem.text
 
 let split_elem l elem =
-  let (extra,first) = split_string elem in
-  match extra, first with
+  let open Buffer in
+  let (first,extra) = split_string elem in
+  match contents extra, first with
   | "", [] -> l
   | "", y -> l @ y
   | x, [] -> l @ [{text = x; attr = elem.attr}]
@@ -32,24 +37,21 @@ let group_by_newline (result,temp) elem =
   else (result, temp @ [elem])
 
 let group_by_list (l,temp) elem_list =
-  let is_list = List.fold_right
-    (fun x b -> if b then b else 
-                match x.attr with
-                | None -> b
-                | Some a -> 
-                  match a.list with
-                  | None -> false
-                  | Some y -> true)
-    elem_list false
+  let is_list,align = List.fold_right
+    (fun x (b,s) -> if b then b,s else
+      match x.attr with
+      | None -> b,s
+      | Some a -> (BatOption.default false a.list,BatOption.default "" a.align))
+    elem_list (false,"")
   in
   if is_list then
     match temp with
-    | Ordered_list (x) -> l, Ordered_list(x @ [Li_section(elem_list)])
-    | _ -> l, Ordered_list([Li_section(elem_list)])
+    | Ordered_list (x) -> l, Ordered_list(x @ [Li_section(elem_list,align)])
+    | _ -> l, Ordered_list([Li_section(elem_list,align)])
   else
     match temp with
-    | Ordered_list (x) -> l @ [temp] @ [Div_section(elem_list)], Empty_section
-    | _ -> l @ [Div_section(elem_list)], Empty_section
+    | Ordered_list (x) -> l @ [temp] @ [Div_section(elem_list,align)], Empty_section
+    | _ -> l @ [Div_section(elem_list,align)], Empty_section
 
 let create_span attribute value =
   let html_attribute = Util_html.encode attribute in
@@ -68,12 +70,13 @@ let create_li align =
   let html_align = Util_html.encode align in
   "<li style=\"text-align: " ^ html_align ^ ";\">"
 
-let get_elem (html, align) elem =
+let get_elem html_buf elem =
   match elem.attr with
-  | None ->  if html = "" && elem.text = "\n" then html ^ "<br>", ""
-             else (html ^ elem.text), ""
+  | None ->  if Buffer.contents html_buf = "" && elem.text = "\n" then
+               Buffer.add_string html_buf "<br>"
+             else
+               Buffer.add_string html_buf elem.text
   | Some a ->
-  let align_info = BatOption.default "" a.align in
   let open_bold,close_bold =
   match a.bold with
   | None -> "",""
@@ -121,27 +124,30 @@ let get_elem (html, align) elem =
                    ^ close_size ^ close_font ^ close_background ^ close_color
   in
   (*special case break if no other text*)
-  let text = if html = "" && elem.text = "\n" then "<br>" else elem.text in
-  html ^ open_tags ^ text ^ close_tags, align_info
-
-let rec print_list html new_section =
-  let (section_html, align) = 
-    match new_section with
-    | Ordered_list x -> List.fold_left print_list ("") x, ""
-    | Div_section x -> List.fold_left get_elem ("","") x
-    | Li_section x -> List.fold_left get_elem ("","") x
-    | Empty_section -> "",""
+  let text = if Buffer.contents html_buf = "" && elem.text = "\n" then "<br>"
+             else elem.text
   in
-  match new_section with
-  | Ordered_list _ -> html ^ "<ol>" ^ section_html ^ "</ol>"
-  | Div_section _ -> html ^ (create_div align) ^ section_html ^ "</div>"
-  | Li_section _ -> html ^ (create_li align) ^ section_html ^ "</li>"
-  | Empty_section -> html
+  Buffer.add_string html_buf (open_tags ^ text ^ close_tags)
+
+let rec print_list html_buf = function
+  | Ordered_list x ->
+    Buffer.add_string html_buf "<ol>";
+    List.iter (print_list html_buf) x;
+    Buffer.add_string html_buf "</ol>"
+  | Div_section (x,a) ->
+    Buffer.add_string html_buf (create_div a);
+    List.iter (get_elem html_buf) x;
+    Buffer.add_string html_buf "</div>"
+  | Li_section (x,a) ->
+    Buffer.add_string html_buf (create_li a);
+    List.iter (get_elem html_buf) x;
+    Buffer.add_string html_buf "</li>"
+  | Empty_section -> Buffer.reset html_buf
 
 (* Enter stringified json quill object, get html *)
 let to_html json_string =
   let top = Util_quill_j.top_of_string json_string in
-  match validate_top [] top with
+  match Util_quill_v.validate_top [] top with
   | Some x -> "Invalid note format."
   | None ->
   (* First separate elements by new line [a\nb; c\n] -> [a\n; b; c\n] *)
@@ -156,8 +162,9 @@ let to_html json_string =
     | _ -> result
   in
   (* Print list *)
-  let html = List.fold_left print_list ("") final_list in
-  html
+  let html_buf = Buffer.create 1000 in
+  List.iter (print_list html_buf) final_list;
+  Buffer.contents html_buf
 
 (* Enter stringified JSON and get plaintext *)
 let to_plaintext json_string =
