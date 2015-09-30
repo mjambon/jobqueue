@@ -41,7 +41,8 @@ let group_by_list (l,temp) elem_list =
     (fun x (b,s) -> if b then b,s else
       match x.attr with
       | None -> b,s
-      | Some a -> (BatOption.default false a.list,BatOption.default "" a.align))
+      | Some a ->
+        (BatOption.default false a.list,BatOption.default "" a.align))
     elem_list (false,"")
   in
   if is_list then
@@ -50,8 +51,10 @@ let group_by_list (l,temp) elem_list =
     | _ -> l, Ordered_list([Li_section(elem_list,align)])
   else
     match temp with
-    | Ordered_list (x) -> l @ [temp] @ [Div_section(elem_list,align)], Empty_section
-    | _ -> l @ [Div_section(elem_list,align)], Empty_section
+    | Ordered_list (x) ->
+      l @ [temp] @ [Div_section(elem_list,align)], Empty_section
+    | _ ->
+      l @ [Div_section(elem_list,align)], Empty_section
 
 let create_span attribute value =
   let html_attribute = Util_html.encode attribute in
@@ -155,7 +158,9 @@ let to_html json_string =
   (* Combine elements based on new line [a\n; b; c\n] -> [[a\n]; [b; c\n]] *)
   let (combine_list,_) = List.fold_left group_by_newline ([],[]) split_list in
   (* Combine sections based on list attribute *)
-  let (result,extra) = List.fold_left group_by_list ([],Empty_section) combine_list in
+  let (result,extra) =
+    List.fold_left group_by_list ([],Empty_section) combine_list
+  in
   let final_list =
     match extra with
     | Ordered_list x -> result @ [extra]
