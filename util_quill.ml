@@ -139,11 +139,15 @@ let rec print_list html_buf = function
     Buffer.add_string html_buf "</ol>"
   | Div_section (x,a) ->
     Buffer.add_string html_buf (create_div a);
-    List.iter (get_elem html_buf) x;
+    let buf_elem = Buffer.create 1000 in
+    List.iter (get_elem buf_elem) x;
+    Buffer.add_buffer html_buf buf_elem;
     Buffer.add_string html_buf "</div>"
   | Li_section (x,a) ->
     Buffer.add_string html_buf (create_li a);
+    let buf_elem = Buffer.create 1000 in
     List.iter (get_elem html_buf) x;
+    Buffer.add_buffer html_buf buf_elem;
     Buffer.add_string html_buf "</li>"
   | Empty_section -> Buffer.reset html_buf
 
