@@ -1,3 +1,5 @@
+open Lwt
+
 type ('a, 'b)columns = {
   headers: string list;
   make_row: (string list->'b)->'a;
@@ -5,14 +7,14 @@ type ('a, 'b)columns = {
 
 let col ~header string_of = {
   headers = [header];
-  make_row = fun return x -> return [string_of x];
+  make_row = fun ret x -> ret [string_of x];
 }
 
 let (^^) x y = {
   headers = x.headers @ y.headers;
-  make_row = fun return -> x.make_row (fun x_row ->
-                           y.make_row (fun y_row ->
-                           return (x_row @ y_row)));
+  make_row = fun ret -> x.make_row (fun x_row ->
+                        y.make_row (fun y_row ->
+                        ret (x_row @ y_row)));
 }
 
 let headers cols =
@@ -32,8 +34,8 @@ let with_stream_channel f =
     method close_out () =
       push None
   end in
-  Lwt.async (fun () ->
-    Lwt.finalize
+  async (fun () ->
+    finalize
       (fun () -> f (Csv.to_out_obj channel))
-      (fun () -> Lwt.return (push None)));
+      (fun () -> return (push None)));
   stream
