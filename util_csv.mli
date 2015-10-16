@@ -1,11 +1,11 @@
-type ('a, 'b)columns
+type ('a,'b) columns
 
-val col: header:string -> ('a->string) -> ('a->'b, 'b)columns
-val (^^): ('a, 'b)columns -> ('b, 'c)columns -> ('a, 'c)columns
+val col: header:string -> ('a->string) -> ('a->'b,'b) columns
+val (^^): ('a,'b) columns -> ('b,'c) columns -> ('a,'c) columns
 
-val headers: ('a, 'b)columns -> string list
+val headers: ('a,'b) columns -> string list
 
-val make_row: ('row_maker, string list)columns -> 'row_maker
+val make_row: ('row_maker, string list) columns -> 'row_maker
 (* 'row_maker is a function taking arguments for each columns, returning
    a string list. *)
 

@@ -1,6 +1,6 @@
 open Lwt
 
-type ('a, 'b)columns = {
+type ('a,'b) columns = {
   headers: string list;
   make_row: (string list->'b)->'a;
 }
