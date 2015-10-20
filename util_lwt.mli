@@ -77,3 +77,6 @@ val iter_stream : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
    See also Util_conc.iter_stream, which returns the element out of order,
    but is faster if some items take longer to process than others.
 *)
+
+val create_paged_stream: 'acc -> ('acc -> ('acc * 'elem list) Lwt.t)
+                      -> 'elem Lwt_stream.t

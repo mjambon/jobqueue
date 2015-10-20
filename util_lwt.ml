@@ -96,3 +96,16 @@ let gethostbyname hostname =
        | e ->
            Trax.raise __LOC__ e
     )
+
+let create_paged_stream acc page_f =
+  let buf = ref [] in
+  let acc = ref acc in
+  Lwt_stream.from (fun () ->
+    match !buf with
+    | x::xs -> buf := xs; return (Some x)
+    | [] ->
+        page_f !acc >>= fun (next_acc, next_buf) ->
+        acc := next_acc;
+        match next_buf with
+        | x::xs -> buf := xs; return (Some x)
+        | [] -> return None)

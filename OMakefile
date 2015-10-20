@@ -17,6 +17,7 @@ FILES[] =
   util_signal
   util_url
   util_html
+  util_csv
   util_conc
   util_list
   util_ref
