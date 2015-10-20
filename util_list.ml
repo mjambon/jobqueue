@@ -86,9 +86,12 @@ let group_by_key pair_list =
   ) pair_list;
   Hashtbl.fold (fun k r acc -> (k, List.rev !r) :: acc) tbl []
 
+(*
+   Put a list of items into a hash table, removing duplicates.
+*)
 let to_table l get_key =
   let tbl = Hashtbl.create (List.length l) in
-  List.iter (fun x -> Hashtbl.add tbl (get_key x) x) l;
+  List.iter (fun x -> Hashtbl.replace tbl (get_key x) x) l;
   tbl
 
 let test_group_by_key () =
