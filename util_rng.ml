@@ -42,7 +42,7 @@ let uuid () =
       | 1 -> '9'
       | 2 -> 'a'
       | 3 -> 'b'
-      | _ -> failwith "software error" in
+      | _ -> assert false in
 
   Printf.sprintf "%s-%s-4%s-%c%s-%s"
     (x   4)
