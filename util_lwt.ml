@@ -117,3 +117,46 @@ let create_paged_stream acc page_f =
           get_item ()
   in
   Lwt_stream.from get_item
+
+let test_paged_stream () =
+  let create_service pages =
+    assert (pages <> []);
+    let page_array = Array.of_list pages in
+    let get_page page_number =
+      let page = page_array.(page_number) in
+      let next_page_number =
+        let next = page_number + 1 in
+        if next >= Array.length page_array then None
+        else Some next
+      in
+      return (page, next_page_number)
+    in
+    get_page
+  in
+  let get_pages_back pages =
+    let get_page = create_service pages in
+    let stream =
+      create_paged_stream 0 (fun page_number ->
+        get_page page_number >>= fun (items, next_page_number) ->
+        match next_page_number with
+        | None -> return (-1, items, false)
+        | Some n -> return (n, items, true)
+      )
+    in
+    Lwt_stream.to_list stream
+  in
+  let check pages =
+    Lwt_main.run (
+      get_pages_back pages >>= fun result ->
+      return (result = List.flatten pages)
+    )
+  in
+  assert (check [[]]);
+  assert (check [[]; [1]]);
+  assert (check [[1;2]; [3]; [4]]);
+  assert (check [[1;2]; []; []; [4;5;6]]);
+  true
+
+let tests = [
+  "paged stream", test_paged_stream;
+]

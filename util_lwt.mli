@@ -87,3 +87,6 @@ val create_paged_stream:
      The boolean that it returns indicates whether a next page
      must be fetched.
   *)
+
+val test_paged_stream : unit -> bool
+val tests : (string * (unit -> bool)) list
