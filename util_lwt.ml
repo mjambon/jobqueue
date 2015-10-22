@@ -100,12 +100,20 @@ let gethostbyname hostname =
 let create_paged_stream acc page_f =
   let buf = ref [] in
   let acc = ref acc in
-  Lwt_stream.from (fun () ->
+  let want_refill = ref true in
+  let rec get_item () =
     match !buf with
-    | x::xs -> buf := xs; return (Some x)
+    | x::xs ->
+        buf := xs;
+        return (Some x)
     | [] ->
-        page_f !acc >>= fun (next_acc, next_buf) ->
-        acc := next_acc;
-        match next_buf with
-        | x::xs -> buf := xs; return (Some x)
-        | [] -> return None)
+        if not !want_refill then
+          return None
+        else
+          page_f !acc >>= fun (next_acc, items, continue) ->
+          want_refill := continue;
+          acc := next_acc;
+          buf := items;
+          get_item ()
+  in
+  Lwt_stream.from get_item
