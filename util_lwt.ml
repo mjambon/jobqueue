@@ -157,6 +157,21 @@ let test_paged_stream () =
   assert (check [[1;2]; []; []; [4;5;6]]);
   true
 
+let with_retries delays f =
+  let rec loop i delays =
+    f i >>= function
+    | None ->
+        (match delays with
+         | delay :: delays ->
+             Lwt_unix.sleep delay >>= fun () ->
+             loop (i+1) delays
+         | [] ->
+             return None
+        )
+    | Some result -> return (Some (i, result))
+  in
+  loop 0 delays
+
 let tests = [
   "paged stream", test_paged_stream;
 ]

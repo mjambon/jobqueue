@@ -88,5 +88,17 @@ val create_paged_stream:
      must be fetched.
   *)
 
+val with_retries :
+  float list ->
+  (int -> 'a option Lwt.t) ->
+  (int * 'a) option Lwt.t
+  (* [with_retries delays f] executes [f i] where [i] is the
+     zero-based attempt number. If [f] returns [None],
+     it sleeps and retries later. The amount of sleep between each
+     attempt is specified by [delays].
+     Returns the result of [f] if any and the number of retries
+     performed. 0 is returned if [f] is successful the first time.
+  *)
+
 val test_paged_stream : unit -> bool
 val tests : (string * (unit -> bool)) list
