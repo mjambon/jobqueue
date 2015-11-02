@@ -1,6 +1,13 @@
+(*
+   Read a process ID from a file.
+   If the file exists, it must contain just an int.
+*)
 let get_previous_worker_pid pid_file =
-  try Some (int_of_string (BatPervasives.input_file pid_file))
-  with _ -> None
+  if Sys.file_exists pid_file then
+    let pid_string = BatPervasives.input_file pid_file in
+    Some (int_of_string pid_string)
+  else
+    None
 
 let save_pid pid_file =
   BatPervasives.output_file
