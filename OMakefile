@@ -23,7 +23,6 @@ FILES[] =
   util_ref
   util_geo
   util_model
-  util_worker
   util_shutdown
   util_stream
   util_lwt
