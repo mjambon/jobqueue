@@ -35,6 +35,7 @@ FILES[] =
   util_quill_j
   util_quill_v
   util_quill
+  util_shell
 
 Atdgen(util_quill, -j-std -j-defaults)
 OCamlLibrary(util, $(FILES))
