@@ -37,6 +37,7 @@ FILES[] =
   util_quill
   util_shell
   util_jobqueue
+  util_counter
 
 Atdgen(util_quill, -j-std -j-defaults)
 OCamlLibrary(util, $(FILES))
