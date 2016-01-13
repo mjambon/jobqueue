@@ -65,6 +65,7 @@ val find_map_left : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 val find_map_right : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 
 val map_default : 'b -> 'a option -> ('a -> 'b Lwt.t) -> 'b Lwt.t
+val option_map : 'a option -> ('a -> 'b Lwt.t) -> 'b option Lwt.t
 
 (* Repeat for n times *)
 val repeat : int -> (int -> unit Lwt.t) -> unit Lwt.t

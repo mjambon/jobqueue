@@ -73,6 +73,11 @@ let map_default default opt f =
   | None -> return default
   | Some x -> f x
 
+let option_map opt f =
+  match opt with
+  | None -> return None
+  | Some x -> f x >>= fun y -> return (Some y)
+
 let rec repeat n op =
   if 0 < n then op n >>= fun () -> repeat (n-1) op
   else return ()
