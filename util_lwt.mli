@@ -69,24 +69,6 @@ val map_default : 'b -> 'a option -> ('a -> 'b Lwt.t) -> 'b Lwt.t
 (* Repeat for n times *)
 val repeat : int -> (int -> unit Lwt.t) -> unit Lwt.t
 
-val iter_stream : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
-  (*
-     Parallel iteration over a stream.
-     At most chunk_size (first parameter) items are processed at the same time.
-
-     See also Util_conc.iter_stream, which returns the element out of order,
-     but is faster if some items take longer to process than others.
-  *)
-
-val create_paged_stream:
-  'acc -> ('acc -> ('acc * 'elem list * bool) Lwt.t) -> 'elem Lwt_stream.t
-  (*
-     Create a stream of items from a function that
-     fetches pages of items, using an accumulator
-     to carry information such as page number.
-     The boolean that it returns indicates whether a next page
-     must be fetched.
-  *)
 
 val with_retries :
   float list ->
@@ -99,6 +81,3 @@ val with_retries :
      Returns the result of [f] if any and the number of retries
      performed. 0 is returned if [f] is successful the first time.
   *)
-
-val test_paged_stream : unit -> bool
-val tests : (string * (unit -> bool)) list
