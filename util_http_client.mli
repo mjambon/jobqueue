@@ -4,6 +4,12 @@ val trace : bool ref
 type response =
   (Cohttp.Code.status_code * (string * string) list * string)
 
+val wrap :
+  ?headers:(string * string) list ->
+  ?body:string ->
+  Cohttp.Code.meth ->
+  Uri.t -> response Lwt.t
+
 val get :
   ?headers:(string * string) list ->
   Uri.t -> response Lwt.t

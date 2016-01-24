@@ -29,6 +29,14 @@ let test_compact_whitespace () =
 let ascii_normalize s =
   compact_whitespace (ascii_lowercase s)
 
+let parse_prefix prefix s =
+  let open BatString in
+  if starts_with s prefix then
+    let start = length prefix in
+    Some (sub s start (length s - start))
+  else
+    None
+
 let tests = [
   "ascii lowercase", test_ascii_lowercase;
   "compact whitespace", test_compact_whitespace;
