@@ -1,4 +1,5 @@
 open Printf
+open Lwt
 
 let split_proc_status_line s =
   try
@@ -39,6 +40,36 @@ let test_resident_memory_size () =
   ignore (get_resident_memory_size (Unix.getpid ()));
   true
 
+let ls dirname =
+  Lwt_unix.opendir dirname >>= fun dir ->
+  let rec read acc =
+    let maxlen = 1025 in
+    Lwt_unix.readdir_n dir maxlen >>= fun a ->
+    let acc = List.rev_append (Array.to_list a) acc in
+    if Array.length a < maxlen then
+      return (List.rev acc)
+    else
+      read acc
+  in
+  Lwt.finalize
+    (fun () -> read [])
+    (fun () -> Lwt_unix.closedir dir)
+
+let get_fd_count pid =
+  let dirname = sprintf "/proc/%d/fd" pid in
+  if Sys.file_exists dirname then
+    ls dirname >>= fun l ->
+    (* Exclude . and ..; assume all other files are decimal numbers
+       identifying file descriptors *)
+    return (Some (List.length l - 2))
+  else
+    return None
+
+let test_file_descriptor_count () =
+  ignore (get_fd_count (Unix.getpid ()));
+  true
+
 let tests = [
   "resident memory size", test_resident_memory_size;
+  "file descriptor count", test_file_descriptor_count;
 ]

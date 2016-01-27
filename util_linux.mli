@@ -7,6 +7,11 @@
    is not available. Exceptions are reserved for errors.
 *)
 
+val get_fd_count : int -> int option Lwt.t
+  (*
+     Get the number of file descriptors used by the given process.
+  *)
+
 val get_resident_memory_size : int -> float option
   (*
      Get the resident memory size of the given process.
