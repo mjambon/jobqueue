@@ -67,10 +67,6 @@ val find_map_right : 'a list -> ('a -> 'b option Lwt.t) -> 'b option Lwt.t
 val map_default : 'b -> 'a option -> ('a -> 'b Lwt.t) -> 'b Lwt.t
 val option_map : 'a option -> ('a -> 'b Lwt.t) -> 'b option Lwt.t
 
-(* Repeat for n times *)
-val repeat : int -> (int -> unit Lwt.t) -> unit Lwt.t
-
-
 val with_retries :
   float list ->
   (int -> 'a option Lwt.t) ->
@@ -82,3 +78,11 @@ val with_retries :
      Returns the result of [f] if any and the number of retries
      performed. 0 is returned if [f] is successful the first time.
   *)
+
+val repeat_s : int -> (unit -> 'a Lwt.t) -> 'a Lwt.t
+  (* Repeat the same job sequentially a number of times and return
+     the result of the last iteration. *)
+
+val repeat_p : int -> (unit -> 'a Lwt.t) -> 'a Lwt.t
+  (* Run the same job in parallel a number of times and return
+     the result of one of the jobs. *)
