@@ -86,3 +86,6 @@ val repeat_s : int -> (unit -> 'a Lwt.t) -> 'a Lwt.t
 val repeat_p : int -> (unit -> 'a Lwt.t) -> 'a Lwt.t
   (* Run the same job in parallel a number of times and return
      the result of one of the jobs. *)
+
+val infinite_loop : (unit -> unit Lwt.t) -> 'a Lwt.t
+  (* Infinite loop that doesn't introduce a memory leak. *)

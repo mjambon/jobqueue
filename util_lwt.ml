@@ -124,3 +124,9 @@ let rec repeat_p n f =
     Lwt_list.map_p f l >>= function
     | result :: _ -> return result
     | [] -> assert false
+
+let rec infinite_loop f =
+  (* Do not use the (>>=) operator because it is expanded by Trax
+     into something that produces a call trace, resulting
+     in a useless giant trace growing with each recursive call. *)
+  Lwt.bind (f ()) (fun () -> infinite_loop f)
