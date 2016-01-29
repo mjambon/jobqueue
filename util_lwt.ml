@@ -78,10 +78,6 @@ let option_map opt f =
   | None -> return None
   | Some x -> f x >>= fun y -> return (Some y)
 
-let rec repeat n op =
-  if 0 < n then op n >>= fun () -> repeat (n-1) op
-  else return ()
-
 let gethostbyname hostname =
   catch
     (fun () ->
@@ -109,3 +105,22 @@ let with_retries delays f =
     | Some result -> return (Some (i, result))
   in
   loop 0 delays
+
+let rec repeat_s n f =
+  if n <= 0 then
+    invalid_arg "repeat"
+  else
+    f () >>= fun result ->
+    if n = 1 then
+      return result
+    else
+      repeat_s (n-1) f
+
+let rec repeat_p n f =
+  if n <= 0 then
+    invalid_arg "repeat"
+  else
+    let l = BatList.init n (fun _ -> ()) in
+    Lwt_list.map_p f l >>= function
+    | result :: _ -> return result
+    | [] -> assert false
