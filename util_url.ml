@@ -1,8 +1,15 @@
 module Op = struct
-  let (@^@) (k,f,v) query =
-    match v with
+  (* Add an optional (k, v) pair to the query *)
+  let (@^@) (k, f, opt_v) query =
+    match opt_v with
     | None   -> query
     | Some v -> (k, [f v]) :: query
+
+  (* Add multiple optional (k, v) pairs to the query, repeating the same key *)
+  let (@^^@) (k, f, opt_l) query =
+    match opt_l with
+    | None   -> query
+    | Some l -> BatList.fold_right (fun v q -> (k, [f v]) :: q) l query
 end
 
 let encode s = Nlencoding.Url.encode ~plus:false s
