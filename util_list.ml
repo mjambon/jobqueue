@@ -35,6 +35,11 @@ let test_unique () =
   let expected_output = [3;2;5;1;8;4] in
   unique input = expected_output
 
+(*
+   Remove duplicates from the union of the lists, proceeding
+   from left to right:
+     union_full (fun x -> x) [1; 2; 3] [4; 3; 5] = [1; 2; 3; 4; 5]
+*)
 let union_full get_key l1 l2 = unique_full get_key (l1 @ l2)
 
 let union l1 l2 = union_full (fun x -> x) l1 l2
