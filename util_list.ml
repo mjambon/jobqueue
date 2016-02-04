@@ -1,3 +1,15 @@
+(*
+   Various utilities for handling lists
+*)
+
+let sort_full ?(compare = compare) get_key l =
+  let kv_list = List.rev_map (fun v -> (get_key v, v)) l in
+  let kv_list = List.sort (fun (k1, v1) (k2, v2) -> compare k2 k1) kv_list in
+  List.rev_map snd kv_list
+
+let test_sort_full () =
+  sort_full String.lowercase ["C"; "A"; "b"] = ["A"; "b"; "C"]
+
 (* Remove duplicate elements and elements from the second list,
    proceeding from left to right. *)
 let diff_full get_key l1 l2 =
@@ -125,6 +137,7 @@ let find l f = BatList.find f l
 
 
 let tests = [
+  "sort", test_sort_full;
   "unique", test_unique;
   "inter", test_inter;
   "group by key", test_group_by_key;
