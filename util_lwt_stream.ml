@@ -1,10 +1,14 @@
 open Lwt
 
+(* Use this in the body of deep recursive functions
+   to prevent stack overflows and memory leaks. *)
+let ( >>=! ) = Lwt.bind
+
 let rec iter_stream chunk_size stream f =
-  Lwt_stream.nget chunk_size stream >>= function
+  Lwt_stream.nget chunk_size stream >>=! function
   | [] -> return ()
   | l ->
-      Util_conc.iter l f >>= fun () ->
+      Util_conc.iter l f >>=! fun () ->
       iter_stream chunk_size stream f
 
 let create_paged_stream acc page_f =
@@ -20,7 +24,7 @@ let create_paged_stream acc page_f =
         if not !want_refill then
           return None
         else
-          page_f !acc >>= fun (next_acc, items, continue) ->
+          page_f !acc >>=! fun (next_acc, items, continue) ->
           want_refill := continue;
           acc := next_acc;
           buf := items;
@@ -110,7 +114,7 @@ let merge ?(cmp = compare) ~get_key streams =
   | _ ->
       let rec next () =
         find_minimum cmp_opt get_opt_value get_opt_key streams
-        >>= function
+        >>=! function
         | None ->
             return None
         | Some (v, stream) ->
