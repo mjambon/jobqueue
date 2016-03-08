@@ -91,6 +91,7 @@ module type Wrapped = sig
     Uri.t -> result Lwt.t
   val delete :
     ?headers:(string * string) list ->
+    ?body:string ->
     Uri.t -> result Lwt.t
   val put :
     ?headers:(string * string) list ->
@@ -108,7 +109,7 @@ module Original = struct
   let get ?headers uri = wrap ?headers `GET uri
   let post ?headers ?body uri = wrap ?headers ?body `POST uri
   let head ?headers uri = wrap ?headers `HEAD uri
-  let delete ?headers uri = wrap ?headers `DELETE uri
+  let delete ?headers ?body uri = wrap ?headers ?body `DELETE uri
   let put ?headers ?body uri = wrap ?headers `PUT ?body uri
   let patch ?headers ?body uri = wrap ?headers `PATCH ?body uri
 
@@ -141,8 +142,8 @@ struct
     W.wrap (fun () -> U.post ?headers ?body uri)
   let head ?headers uri =
     W.wrap (fun () -> U.head ?headers uri)
-  let delete ?headers uri =
-    W.wrap (fun () -> U.delete ?headers uri)
+  let delete ?headers ?body uri =
+    W.wrap (fun () -> U.delete ?headers ?body uri)
   let put ?headers ?body uri =
     W.wrap (fun () -> U.put ?headers ?body uri)
   let patch ?headers ?body uri =

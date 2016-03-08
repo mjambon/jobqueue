@@ -22,6 +22,7 @@ val head :
   Uri.t -> response Lwt.t
 val delete :
   ?headers:(string * string) list ->
+  ?body:string ->
   Uri.t -> response Lwt.t
 val put :
   ?headers:(string * string) list ->
@@ -48,6 +49,7 @@ module type Wrapped = sig
     Uri.t -> result Lwt.t
   val delete :
     ?headers:(string * string) list ->
+    ?body:string ->
     Uri.t -> result Lwt.t
   val put :
     ?headers:(string * string) list ->
