@@ -33,3 +33,7 @@ let test_gunzip_string () =
   let input = Util_hex.decode hex_input in
   let expected_output = "Hello!\n" in
   gunzip_string input = expected_output
+
+let tests = [
+  "gunzip string", test_gunzip_string;
+]
