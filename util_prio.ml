@@ -23,9 +23,3 @@ let is_high_priority_job () =
   | None -> !default_high_priority
   | Some true -> true
   | Some false -> false
-
-let high_priority_job f =
-  Lwt.with_value key (Some true) f
-
-let low_priority_job f =
-  Lwt.with_value key (Some false) f
