@@ -39,3 +39,11 @@ let with_stream_channel f =
       (fun () -> f (Csv.to_out_obj channel))
       (fun () -> return (push None)));
   stream
+
+let of_string s =
+  Csv.input_all (Csv.of_string s)
+
+let to_string ll =
+  let buf = Buffer.create 1024 in
+  Csv.output_all (Csv.to_buffer buf) ll;
+  Buffer.contents buf
