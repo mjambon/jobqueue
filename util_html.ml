@@ -13,6 +13,10 @@ let encode s =
   done;
   Buffer.contents buf
 
+let tag tag ?(attrs="") text =
+  let sp = if attrs = "" then "" else " " in
+  Printf.sprintf "<%s%s%s>%s</%s>" tag sp attrs text tag
+
 let paragraph_sep = Pcre.regexp "(?:\r*\n){2,}"
 let line_sep = Pcre.regexp "\r*\n"
 
