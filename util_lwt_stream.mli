@@ -5,6 +5,8 @@
 val iter : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
   (*
      Parallel iteration over a stream.
+     The elements of the input stream are computed sequentially, but the
+     user-provided function applied to each element runs concurrently.
      The first parameter max_threads indicates how many items
      will be processed concurrently.
   *)
