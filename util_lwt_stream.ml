@@ -4,12 +4,74 @@ open Lwt
    to prevent stack overflows and memory leaks. *)
 let ( >>=! ) = Lwt.bind
 
+(*
 let rec iter_stream chunk_size stream f =
   Lwt_stream.nget chunk_size stream >>=! function
   | [] -> return ()
   | l ->
       Util_conc.iter l f >>=! fun () ->
       iter_stream chunk_size stream f
+*)
+
+let iter max_threads stream f =
+  let get_id =
+    let counter = ref 0 in
+    fun () ->
+      if !counter = -1 then
+        failwith "int overflow";
+      incr counter;
+      !counter
+  in
+  let waiter, awakener = Lwt.wait () in
+  let in_progress = Hashtbl.create max_threads in
+  let maybe_finish () =
+    if Hashtbl.length in_progress = 0 then
+      Lwt.wakeup awakener ()
+  in
+  let rec launch_job () =
+    let id = get_id () in
+    let running = ref false in
+    let mark_running make_thread =
+      if not !running then (
+        running := true;
+        let thread = make_thread () in
+        Hashtbl.add in_progress id thread
+      )
+    in
+    let mark_done () =
+      if !running then (
+        running := false;
+        Hashtbl.remove in_progress id
+      )
+    in
+    let mark_failed e =
+      Hashtbl.iter (fun id t -> Lwt.cancel t) in_progress;
+      Lwt.wakeup_exn awakener e
+    in
+    mark_running (fun () ->
+      catch
+        (fun () ->
+           Lwt_stream.get stream >>= function
+           | None ->
+               mark_done ();
+               maybe_finish ();
+               return ()
+           | Some x ->
+               f x >>= fun () ->
+               mark_done ();
+               launch_job ();
+               return ()
+        )
+        (fun e ->
+           mark_failed e;
+           return ()
+        )
+    )
+  in
+  for i = 1 to max_threads do
+    launch_job ();
+  done;
+  waiter
 
 let create_paged_stream acc page_f =
   let buf = ref [] in

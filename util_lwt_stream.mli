@@ -2,7 +2,7 @@
    General-purpose utilities not provided by Lwt_stream
 *)
 
-val iter_stream : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
+val iter : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
   (*
      Parallel iteration over a stream.
      At most chunk_size (first parameter) items are processed at the same time.
