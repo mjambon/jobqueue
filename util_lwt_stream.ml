@@ -1,19 +1,13 @@
+open Printf
 open Lwt
 
 (* Use this in the body of deep recursive functions
    to prevent stack overflows and memory leaks. *)
 let ( >>=! ) = Lwt.bind
 
-(*
-let rec iter_stream chunk_size stream f =
-  Lwt_stream.nget chunk_size stream >>=! function
-  | [] -> return ()
-  | l ->
-      Util_conc.iter l f >>=! fun () ->
-      iter_stream chunk_size stream f
-*)
-
 let iter max_threads stream f =
+  if max_threads <= 0 then
+    invalid_arg "Util_lwt_stream.iter: max_threads must be posivitive";
   let get_id =
     let counter = ref 0 in
     fun () ->
@@ -24,40 +18,46 @@ let iter max_threads stream f =
   in
   let waiter, awakener = Lwt.wait () in
   let in_progress = Hashtbl.create max_threads in
+  let threads = Hashtbl.create max_threads in
+  let is_asleep () =
+    Lwt.state waiter = Sleep
+  in
   let maybe_finish () =
-    if Hashtbl.length in_progress = 0 then
+    if Hashtbl.length in_progress = 0 && is_asleep () then
       Lwt.wakeup awakener ()
   in
   let rec launch_job () =
     let id = get_id () in
-    let running = ref false in
-    let mark_running make_thread =
-      if not !running then (
-        running := true;
-        let thread = make_thread () in
-        Hashtbl.add in_progress id thread
-      )
+    let mark_running () =
+      Hashtbl.add in_progress id ();
+      assert (Hashtbl.length in_progress <= max_threads)
+    in
+    let register_thread thread =
+      Hashtbl.add threads id thread
     in
     let mark_done () =
-      if !running then (
-        running := false;
-        Hashtbl.remove in_progress id
-      )
+      Hashtbl.remove in_progress id;
+      Hashtbl.remove threads id
     in
     let mark_failed e =
-      Hashtbl.iter (fun id t -> Lwt.cancel t) in_progress;
-      Lwt.wakeup_exn awakener e
+      if is_asleep () then
+        Lwt.wakeup_exn awakener e;
+      Hashtbl.iter (fun other_id t ->
+        if other_id <> id then
+          Lwt.cancel t
+      ) threads;
     in
-    mark_running (fun () ->
+    mark_running ();
+    let thread =
       catch
         (fun () ->
-           Lwt_stream.get stream >>= function
+           Lwt_stream.get stream >>=! function
            | None ->
                mark_done ();
                maybe_finish ();
                return ()
            | Some x ->
-               f x >>= fun () ->
+               f x >>=! fun () ->
                mark_done ();
                launch_job ();
                return ()
@@ -66,12 +66,61 @@ let iter max_threads stream f =
            mark_failed e;
            return ()
         )
-    )
+    in
+    register_thread thread
   in
   for i = 1 to max_threads do
     launch_job ();
   done;
-  waiter
+    waiter
+
+exception Test_exn of string
+
+let test_iter () =
+  let async_thread (i, dt) =
+    printf "start %i\n%!" i;
+    Lwt_unix.sleep dt >>=! fun () ->
+    printf "end %i\n%!" i;
+    return ()
+  in
+  let sync_thread i =
+    printf "start-end %i\n%!" i;
+    return ()
+  in
+  let async_thread_exn (i, dt) =
+    printf "start %i\n%!" i;
+    Lwt_unix.sleep dt >>=! fun () ->
+    raise (Test_exn (sprintf "exception in thread %i" i))
+  in
+  let sync_thread_exn i =
+    printf "start %i\n%!" i;
+    raise (Test_exn (sprintf "exception in thread %i" i))
+  in
+
+  let run_iter max_threads list f =
+    Lwt_main.run (
+      let stream = Lwt_stream.of_list list in
+      let iteration = iter max_threads stream f in
+      let timer =
+        Lwt_unix.sleep 10. >>=! fun () ->
+        assert false
+      in
+      pick [iteration; timer]
+    )
+  in
+  let run_iter_exn max_threads list f =
+    try run_iter max_threads list f
+    with Test_exn _ -> ()
+  in
+
+  run_iter 2 [] async_thread;
+  run_iter 2 [1, 0.01; 2, 0.001; 3, 0.001; 4, 0.001] async_thread;
+  run_iter 2 [1;2;3;4;5;6] sync_thread;
+  run_iter 5 [1, 0.001; 2, 0.001] async_thread;
+  run_iter 5 [1;2] sync_thread;
+  run_iter_exn 3 [1, 0.003; 2, 0.001; 3, 0.001; 4, 0.001] async_thread_exn;
+  run_iter_exn 3 [1;2;3;4;5] sync_thread_exn;
+  true
 
 let create_paged_stream acc page_f =
   let buf = ref [] in
@@ -212,6 +261,7 @@ let test_merge () =
   true
 
 let tests = [
+  "iter", test_iter;
   "paged stream", test_paged_stream;
   "merge", test_merge;
 ]

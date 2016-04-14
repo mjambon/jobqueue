@@ -5,10 +5,8 @@
 val iter : int -> 'a Lwt_stream.t -> ('a -> unit Lwt.t) -> unit Lwt.t
   (*
      Parallel iteration over a stream.
-     At most chunk_size (first parameter) items are processed at the same time.
-
-     See also Util_conc.iter_stream, which returns the element out of order,
-     but is faster if some items take longer to process than others.
+     The first parameter max_threads indicates how many items
+     will be processed concurrently.
   *)
 
 val create_paged_stream:
@@ -31,6 +29,7 @@ val merge :
 
 (* Testing *)
 
+val test_iter : unit -> bool
 val test_paged_stream : unit -> bool
 val merge_lists : 'a list list -> 'a list
 val test_merge : unit -> bool
