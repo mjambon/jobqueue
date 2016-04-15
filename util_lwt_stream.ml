@@ -5,78 +5,129 @@ open Lwt
    to prevent stack overflows and memory leaks. *)
 let ( >>=! ) = Lwt.bind
 
+let make_counter () =
+  let counter = ref 0 in
+  fun () ->
+    if !counter = -1 then
+      failwith "int overflow";
+    incr counter;
+    !counter
+
+(*
+   Compute the stream elements sequentially,
+   apply a function to each element concurrently.
+
+   If too many jobs (> max_threads) are already busy processing elements,
+   we wait until one job finishes. This is signaled via finished_job.
+
+   If one job fails with an exception, all the other jobs are killed.
+
+   The state of the main thread is set either once all the jobs
+   are complete or when a job fails with an exception.
+*)
 let iter max_threads stream f =
   if max_threads <= 0 then
-    invalid_arg "Util_lwt_stream.iter: max_threads must be posivitive";
-  let get_id =
-    let counter = ref 0 in
-    fun () ->
-      if !counter = -1 then
-        failwith "int overflow";
-      incr counter;
-      !counter
+    invalid_arg "Util_lwt_stream.iter: max_threads must be positive";
+  let finished_job = Lwt_condition.create () in
+  let running = ref 0 in
+  (* Jobs that are running concurrently or just finished
+     and were not removed from this table yet.
+     This is used for killing concurrent jobs when one job terminates
+     with an exception. *)
+  let jobs = Hashtbl.create max_threads in
+  let get_id = make_counter () in
+  let add_job x =
+    let id = get_id () in
+    Hashtbl.add jobs id x;
+    (* Eventual auto-removal from the table *)
+    Lwt.async (fun () ->
+      Lwt.finalize
+        (fun () -> x)
+        (fun () -> Hashtbl.remove jobs id; return ())
+    )
   in
   let waiter, awakener = Lwt.wait () in
-  let in_progress = Hashtbl.create max_threads in
-  let threads = Hashtbl.create max_threads in
   let is_asleep () =
     Lwt.state waiter = Sleep
   in
+  let stream_length = ref 0 in
+  let started_all_jobs = ref false in
+  let completed = ref 0 in
   let maybe_finish () =
-    if Hashtbl.length in_progress = 0 && is_asleep () then
-      Lwt.wakeup awakener ()
-  in
-  let rec launch_job () =
-    let id = get_id () in
-    let mark_running () =
-      Hashtbl.add in_progress id ();
-      assert (Hashtbl.length in_progress <= max_threads)
-    in
-    let register_thread thread =
-      Hashtbl.add threads id thread
-    in
-    let mark_done () =
-      Hashtbl.remove in_progress id;
-      Hashtbl.remove threads id
-    in
-    let mark_failed e =
+    if !started_all_jobs && !completed = !stream_length then
       if is_asleep () then
-        Lwt.wakeup_exn awakener e;
-      Hashtbl.iter (fun other_id t ->
-        if other_id <> id then
-          Lwt.cancel t
-      ) threads;
-    in
-    mark_running ();
-    let thread =
-      catch
-        (fun () ->
-           Lwt_stream.get stream >>=! function
-           | None ->
-               mark_done ();
-               maybe_finish ();
-               return ()
-           | Some x ->
-               f x >>=! fun () ->
-               mark_done ();
-               launch_job ();
-               return ()
-        )
-        (fun e ->
-           mark_failed e;
-           return ()
-        )
-    in
-    register_thread thread
+        Lwt.wakeup awakener ()
   in
-  for i = 1 to max_threads do
-    launch_job ();
-  done;
-    waiter
+  let mark_job_running () =
+    if !running < max_threads then (
+      (* One of the first conc jobs to start *)
+      incr running;
+      return ()
+    )
+    else (
+      (* Wait until another job finishes *)
+      Lwt_condition.wait finished_job >>=! fun () ->
+      assert (!running < max_threads);
+      incr running;
+      return ()
+    )
+  in
+  let mark_job_complete () =
+    decr running;
+    incr completed;
+    (* Awaken the main thread (waiter) if all the other jobs
+       were started and completed. *)
+    maybe_finish ();
+    Lwt_condition.signal finished_job ()
+  in
+  let mark_job_failed e =
+    (* Set the state of the main thread (waiter) to this exception *)
+    if is_asleep () then
+      Lwt.wakeup_exn awakener e;
+    (* Kill all the running jobs *)
+    Hashtbl.iter (fun id x -> Lwt.cancel x) jobs
+  in
+  let launch_job x =
+    catch
+      (fun () ->
+         mark_job_running () >>=! fun () ->
+         f x >>=! fun () ->
+         mark_job_complete ();
+         return ()
+      )
+      (fun e ->
+         mark_job_failed e;
+         return ()
+      )
+  in
+  Lwt_stream.iter (fun x ->
+    incr stream_length;
+    let background_job = launch_job x in
+    Lwt.async (fun () -> background_job);
+    add_job background_job
+  ) stream
+  >>=! fun () ->
+  started_all_jobs := true;
+  (* If the stream was empty or if all the jobs already completed,
+     we need to awaken the main thread (waiter) now. *)
+  maybe_finish ();
+  waiter
 
 exception Test_exn of string
 
 let test_iter () =
+  let stream_of_list l =
+    let q = ref l in
+    Lwt_stream.from (fun () ->
+      match !q with
+      | [] -> return None
+      | x :: l ->
+          (* Make sure stream elements are evaluated asynchronously *)
+          Lwt_unix.sleep 1e-6 >>=! fun () ->
+          q := l;
+          return (Some x)
+    )
+  in
   let async_thread (i, dt) =
     printf "start %i\n%!" i;
     Lwt_unix.sleep dt >>=! fun () ->
@@ -97,9 +148,10 @@ let test_iter () =
     raise (Test_exn (sprintf "exception in thread %i" i))
   in
 
-  let run_iter max_threads list f =
+  let foreach l f = List.iter f l in
+
+  let run_iter max_threads stream f =
     Lwt_main.run (
-      let stream = Lwt_stream.of_list list in
       let iteration = iter max_threads stream f in
       let timer =
         Lwt_unix.sleep 10. >>=! fun () ->
@@ -108,16 +160,29 @@ let test_iter () =
       pick [iteration; timer]
     )
   in
+  let run_iter_success max_threads list f =
+    foreach [ "synchronous stream", Lwt_stream.of_list list;
+              "asynchronous stream", stream_of_list list ]
+      (fun (text, stream) ->
+         print_endline text;
+         run_iter max_threads stream f
+      )
+  in
   let run_iter_exn max_threads list f =
-    try run_iter max_threads list f
-    with Test_exn _ -> ()
+    foreach [ "synchronous stream", Lwt_stream.of_list list;
+              "asynchronous stream", stream_of_list list ]
+      (fun (text, stream) ->
+         print_endline text;
+         try run_iter max_threads stream f
+         with Test_exn _ -> ()
+      )
   in
 
-  run_iter 2 [] async_thread;
-  run_iter 2 [1, 0.01; 2, 0.001; 3, 0.001; 4, 0.001] async_thread;
-  run_iter 2 [1;2;3;4;5;6] sync_thread;
-  run_iter 5 [1, 0.001; 2, 0.001] async_thread;
-  run_iter 5 [1;2] sync_thread;
+  run_iter_success 2 [] async_thread;
+  run_iter_success 2 [1, 0.01; 2, 0.001; 3, 0.001; 4, 0.001] async_thread;
+  run_iter_success 2 [1;2;3;4;5;6] sync_thread;
+  run_iter_success 5 [1, 0.001; 2, 0.001] async_thread;
+  run_iter_success 5 [1;2] sync_thread;
   run_iter_exn 3 [1, 0.003; 2, 0.001; 3, 0.001; 4, 0.001] async_thread_exn;
   run_iter_exn 3 [1;2;3;4;5] sync_thread_exn;
   true
