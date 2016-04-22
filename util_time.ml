@@ -79,6 +79,12 @@ let utc_start_of_week x =
   let t' = floor (same_time_sunday /. 86400.) *. 86400. in
   of_float t'
 
+let utc_week x =
+  (* week 0 = week containing 1970-01-01, starting 4 days earlier *)
+  let seconds_from_day0 = x.unixtime in
+  let days_from_week0 = seconds_from_day0 /. 86400. +. 4. in
+  truncate (days_from_week0 /. 7.)
+
 let is_past x = x.unixtime < Unix.gettimeofday ()
 let is_future x = x.unixtime > Unix.gettimeofday ()
 

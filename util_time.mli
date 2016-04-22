@@ -41,6 +41,10 @@ val end_of_today : unit -> t
 val utc_start_of_week : t -> t
   (* return the beginning of the week according to UTC time *)
 
+val utc_week : t -> int
+  (* return the week identifier based on the calendar with UTC
+     week boundaries. Week 0 is the week containing 1970-01-01. *)
+
 val add : t -> float -> t
   (* add seconds *)
 
