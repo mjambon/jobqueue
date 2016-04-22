@@ -72,6 +72,13 @@ let end_of_today () =
   } in
   of_float u
 
+let utc_start_of_week x =
+  let t = x.unixtime in
+  let tm = Unix.gmtime t in
+  let same_time_sunday = t -. float tm.Unix.tm_wday *. 86400. in
+  let t' = floor (same_time_sunday /. 86400.) *. 86400. in
+  of_float t'
+
 let is_past x = x.unixtime < Unix.gettimeofday ()
 let is_future x = x.unixtime > Unix.gettimeofday ()
 

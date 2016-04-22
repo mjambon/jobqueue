@@ -38,6 +38,9 @@ val is_future : t -> bool
 val start_of_today : unit -> t
 val end_of_today : unit -> t
 
+val utc_start_of_week : t -> t
+  (* return the beginning of the week according to UTC time *)
+
 val add : t -> float -> t
   (* add seconds *)
 
