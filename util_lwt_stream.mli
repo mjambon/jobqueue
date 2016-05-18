@@ -23,6 +23,7 @@ val create_paged_stream:
 
 val merge :
   ?cmp:('k -> 'k -> int) ->
+  ?exn_handler:(exn -> 'v option Lwt.t) ->
   get_key:('v -> 'k) ->
   'v Lwt_stream.t list -> 'v Lwt_stream.t
   (*

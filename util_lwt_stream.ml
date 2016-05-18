@@ -267,7 +267,7 @@ let find_minimum cmp get_value get_key l =
       | None -> return None
       | Some v -> return (Some (v, stream))
 
-let merge ?(cmp = compare) ~get_key streams =
+let merge ?(cmp = compare) ?(exn_handler = fail) ~get_key streams =
   let get_opt_value stream =
     Lwt_stream.peek stream
   in
@@ -289,13 +289,17 @@ let merge ?(cmp = compare) ~get_key streams =
       Lwt_stream.of_list []
   | _ ->
       let rec next () =
-        find_minimum cmp_opt get_opt_value get_opt_key streams
-        >>=! function
-        | None ->
-            return None
-        | Some (v, stream) ->
-            Lwt_stream.junk stream >>= fun () ->
-            return (Some v)
+        catch
+          (fun () ->
+             find_minimum cmp_opt get_opt_value get_opt_key streams
+             >>=! function
+             | None ->
+                 return None
+             | Some (v, stream) ->
+                 Lwt_stream.junk stream >>= fun () ->
+                 return (Some v)
+          )
+          exn_handler
       in
       Lwt_stream.from next
 
