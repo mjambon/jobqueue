@@ -33,7 +33,7 @@ val patch :
   ?body:string ->
   Uri.t -> response Lwt.t
 
-val post_form: Uri.t -> (string * string list) list -> response Lwt.t
+val post_form: Uri.t -> (string * string) list -> response Lwt.t
 
 module type Wrapped = sig
   type result
