@@ -42,6 +42,7 @@ FILES[] =
   util_linux
   util_prio
   util_gzip
+  util_float
 
 Atdgen(util_quill, -j-std -j-defaults)
 OCamlLibrary(util, $(FILES))
