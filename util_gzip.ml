@@ -59,10 +59,18 @@ let compress_string s =
   try_finally
     (fun () ->
        let oc = Gzip.open_out filename in
-       let close_file () = Gzip.close_out oc in
+       let close_file () =
+         (* reclaim the file descriptor if not done already *)
+         try Gzip.close_out oc
+         with _ -> ()
+       in
        try_finally
          (fun () ->
             Gzip.output oc s 0 (String.length s);
+            (* Ensure complete write to the file.
+               Warning: Gzip.flush alone doesn't flush the underlying
+               Pervasives.out_channel *)
+            Gzip.close_out oc;
             BatPervasives.input_file ~bin:true filename
          )
          close_file
