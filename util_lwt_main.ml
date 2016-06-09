@@ -7,3 +7,12 @@
 let run t =
   Util_shutdown.shutdown_on_sigterm 5.;
   Lwt_main.run (Util_shutdown.cancel_on_shutdown t)
+
+(*
+   Run an infinite loop with graceful shutdown like `run` above.
+*)
+let loop () =
+  run (
+    (* create forever-sleeping thread *)
+    fst (Lwt.wait ())
+  )
