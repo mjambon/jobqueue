@@ -130,3 +130,15 @@ let rec infinite_loop f =
      into something that produces a call trace, resulting
      in a useless giant trace growing with each recursive call. *)
   Lwt.bind (f ()) (fun () -> infinite_loop f)
+
+let with_timeout timeout f =
+  let job =
+    f () >>= fun x ->
+    return (Some x)
+  in
+  let sleep =
+    Lwt_unix.sleep timeout >>= fun () ->
+    return None
+  in
+  (* Cancel the thread that doesn't finish first *)
+  Lwt.pick [ sleep; job ]

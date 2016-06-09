@@ -89,3 +89,7 @@ val repeat_p : int -> (unit -> 'a Lwt.t) -> 'a Lwt.t
 
 val infinite_loop : (unit -> unit Lwt.t) -> 'a Lwt.t
   (* Infinite loop that doesn't introduce a memory leak. *)
+
+val with_timeout : float -> (unit -> 'a Lwt.t) -> 'a option Lwt.t
+  (* Create a job and cancel it if it doesn't finish within
+     the specified time (timeout in seconds). *)
