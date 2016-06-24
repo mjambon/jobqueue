@@ -113,12 +113,13 @@ module Original = struct
   let put ?headers ?body uri = wrap ?headers `PUT ?body uri
   let patch ?headers ?body uri = wrap ?headers `PATCH ?body uri
 
-  let post_form uri query =
+  let post_form' uri query =
     let headers = ["Content-Type", "application/x-www-form-urlencoded"] in
-    let body =
-      Uri.encoded_of_query (BatList.map (fun (k, v) -> (k, [v])) query)
-    in
+    let body = Uri.encoded_of_query query in
     post ~headers ~body uri
+
+  let post_form uri query =
+    post_form' uri (BatList.map (fun (k, v) -> (k, [v])) query)
 end
 
 include Original
