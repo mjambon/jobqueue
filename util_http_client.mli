@@ -36,7 +36,7 @@ val patch :
 val post_form: Uri.t -> (string * string) list -> response Lwt.t
 val post_form': Uri.t -> (string * string list) list -> response Lwt.t
 (* (string * string) list is more convenient, while
-   (string * string list) list is used in `Uri`. *)
+   (string * string list) list is provided for compatibility with `Uri`. *)
 
 module type Wrapped = sig
   type result
