@@ -13,9 +13,21 @@ let encode s =
   done;
   Buffer.contents buf
 
-let tag tag ?(attrs="") text =
-  let sp = if attrs = "" then "" else " " in
-  Printf.sprintf "<%s%s%s>%s</%s>" tag sp attrs text tag
+let attr k v =
+  Printf.sprintf " %s='%s'"
+    (encode k)
+    (encode v)
+
+(*
+   attributes are raw
+   content is html (text is html-escaped)
+*)
+let elt elt_name ?(attrs = []) content =
+  let attrs =
+    String.concat "" (BatList.map (fun (k, v) -> attr k v) attrs)
+  in
+  Printf.sprintf "<%s%s>%s</%s>"
+    elt_name attrs content elt_name
 
 let paragraph_sep = Pcre.regexp "(?:\r*\n){2,}"
 let line_sep = Pcre.regexp "\r*\n"
