@@ -144,20 +144,20 @@ let get_majority pair_list =
       match vl with
       | [] -> assert false
       | first :: _ -> (List.length vl, (k, first))
-    )
+    ) clusters
   in
   match clusters with
   | [] ->
       invalid_arg "Util_list.get_majority"
   | l ->
-      get_first (fun (n1, _) (n2, _) -> compare n2 n1) counts
+      snd (get_first (fun (n1, _) (n2, _) -> compare n2 n1) counts)
 
 let test_get_majority () =
   let k, v = get_majority [ 1, "a";
                             2, "b";
                             2, "c";
                             2, "d";
-                            3, "e",
+                            3, "e";
                             3, "f" ]
   in
   assert (k = 2);
@@ -166,6 +166,38 @@ let test_get_majority () =
       | "b" | "c" | "d" -> true
       | _ -> false
   );
+  true
+
+(*
+   If possible, get a pair (key, value) whose key matches Some _
+   and is the most frequent in the input list, otherwise return
+   a pair whose key is None.
+*)
+let get_opt_majority pair_list =
+  let nones, somes = BatList.partition (fun (o, v) -> o = None) pair_list in
+  match somes with
+  | [] -> get_majority nones
+  | _ -> get_majority somes
+
+let test_get_opt_majority () =
+  let k, v = get_opt_majority [ Some 1, "a";
+                                None, "b";
+                                None, "c";
+                                None, "d";
+                                Some 3, "e";
+                                Some 3, "f";
+                                Some 4, "g" ]
+  in
+  assert (k = Some 3);
+  assert (
+    match v with
+      | "e" | "f" -> true
+      | _ -> false
+  );
+
+  let k, v = get_opt_majority [ None, "a"; None, "b" ] in
+  assert (k = None);
+
   true
 
 (*
@@ -194,6 +226,7 @@ let find l f = BatList.find f l
 let tests = [
   "get_first", test_get_first;
   "get_majority", test_get_majority;
+  "get_opt_majority", test_get_opt_majority;
   "sort", test_sort_full;
   "unique", test_unique;
   "inter", test_inter;
