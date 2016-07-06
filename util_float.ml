@@ -1,4 +1,21 @@
 (*
+   Round a float to the nearest int
+*)
+let round x =
+  if x > 0. then
+    truncate (x +. 0.5)
+  else
+    truncate (x -. 0.5)
+
+let test_round () =
+  assert (round 123.45 = 123);
+  assert (round 0.6 = 1);
+  assert (round 0.4 = 0);
+  assert (round (-0.4) = 0);
+  assert (round (-0.6) = -1);
+  true
+
+(*
    Equality between two numbers, using relative precision
 *)
 let equal_rel ?(prec = 1e-6) a b =
@@ -36,6 +53,7 @@ let test_equal_abs () =
   true
 
 let tests = [
+  "round", test_round;
   "equal_rel", test_equal_rel;
   "equal_abs", test_equal_abs;
 ]

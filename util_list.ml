@@ -103,14 +103,6 @@ let group_by_key pair_list =
   ) pair_list;
   Hashtbl.fold (fun k r acc -> (k, List.rev !r) :: acc) tbl []
 
-(*
-   Put a list of items into a hash table, removing duplicates.
-*)
-let to_table l get_key =
-  let tbl = Hashtbl.create (List.length l) in
-  List.iter (fun x -> Hashtbl.replace tbl (get_key x) x) l;
-  tbl
-
 let test_group_by_key () =
   List.sort compare (group_by_key [1,2;
                                    2,4;
@@ -120,6 +112,69 @@ let test_group_by_key () =
   = List.sort compare [1, [2; 5];
                        2, [4];
                        3, [6; 7]]
+
+(*
+   Find the minimum of a non-empty list according to the given
+   comparison function `cmp` (e.g. Pervasives.compare).
+   `list_first cmp l` is equivalent to `List.hd (List.stable_sort cmp l)`
+   but costs only O(length l).
+*)
+let get_first cmp l =
+  match l with
+  | [] -> assert false
+  | first :: tail ->
+      List.fold_left (fun acc x ->
+        if cmp acc x <= 0 then acc
+        else x
+      ) first tail
+
+let test_get_first () =
+  assert (get_first compare [3;2;1;5;4] = 1);
+  assert (get_first (fun a b -> compare b a) [3;2;1;5;4] = 5);
+  true
+
+(*
+   Get an element with the most common property specified as the key k
+   in each pair (k, v). A sample value is returned with the key.
+*)
+let get_majority pair_list =
+  let clusters = group_by_key pair_list in
+  let counts =
+    BatList.map (fun (k, vl) ->
+      match vl with
+      | [] -> assert false
+      | first :: _ -> (List.length vl, (k, first))
+    )
+  in
+  match clusters with
+  | [] ->
+      invalid_arg "Util_list.get_majority"
+  | l ->
+      get_first (fun (n1, _) (n2, _) -> compare n2 n1) counts
+
+let test_get_majority () =
+  let k, v = get_majority [ 1, "a";
+                            2, "b";
+                            2, "c";
+                            2, "d";
+                            3, "e",
+                            3, "f" ]
+  in
+  assert (k = 2);
+  assert (
+    match v with
+      | "b" | "c" | "d" -> true
+      | _ -> false
+  );
+  true
+
+(*
+   Put a list of items into a hash table, removing duplicates.
+*)
+let to_table l get_key =
+  let tbl = Hashtbl.create (List.length l) in
+  List.iter (fun x -> Hashtbl.replace tbl (get_key x) x) l;
+  tbl
 
 (*
    Common functions with arguments in a better order,
@@ -137,6 +192,8 @@ let find l f = BatList.find f l
 
 
 let tests = [
+  "get_first", test_get_first;
+  "get_majority", test_get_majority;
   "sort", test_sort_full;
   "unique", test_unique;
   "inter", test_inter;
