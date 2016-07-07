@@ -10,17 +10,20 @@ let sort_full ?(compare = compare) get_key l =
 let test_sort_full () =
   sort_full String.lowercase ["C"; "A"; "b"] = ["A"; "b"; "C"]
 
-(* Remove duplicate elements and elements from the second list,
-   proceeding from left to right. *)
-let diff_full get_key l1 l2 =
+(*
+   Remove from the first all duplicate elements based on their keys
+   as well as elements whose keys appear in the second list,
+   proceeding from left to right.
+*)
+let diff_full get_key1 get_key2 l1 l2 =
   let tbl = Hashtbl.create (2 * List.length l1) in
   List.iter (fun x ->
-    let k = get_key x in
+    let k = get_key2 x in
     Hashtbl.replace tbl k ()
   ) l2;
   let r =
     List.fold_left (fun acc x ->
-      let k = get_key x in
+      let k = get_key1 x in
       if Hashtbl.mem tbl k then acc
       else (
         Hashtbl.add tbl k ();
@@ -32,12 +35,12 @@ let diff_full get_key l1 l2 =
 
 (* diff [1;2;3;4] [9;3;5;1] = [2;4] *)
 let diff l1 l2 =
-  diff_full (fun x -> x) l1 l2
+  diff_full (fun x -> x) (fun x -> x) l1 l2
 
 (* Remove duplicate elements,
    proceeding from left to right unlike BatList.unique *)
 let unique_full get_key l =
-  diff_full get_key l []
+  diff_full get_key get_key l []
 
 let unique l =
   unique_full (fun x -> x) l
