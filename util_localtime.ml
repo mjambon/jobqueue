@@ -37,6 +37,29 @@ let create ~year ~month ~day ~hour ~min ~sec =
     string;
   }
 
+let set_time ?hour ?min ?sec x =
+  let hour =
+    match hour with
+    | None -> x.hour
+    | Some h -> h
+  in
+  let min =
+    match min with
+    | None -> x.min
+    | Some h -> h
+  in
+  let sec =
+    match sec with
+    | None -> x.sec
+    | Some h -> h
+  in
+  if hour < 0 || hour > 23
+     || min < 0 || min > 59
+     || not (sec >= 0. && sec < 60.) then
+    invalid_arg "Util_localtime.set_time";
+
+  { x with hour; min; sec }
+
 let of_string s =
   Scanf.sscanf s "%d-%d-%dT%d:%d:%f"
     (fun year month day hour min sec ->

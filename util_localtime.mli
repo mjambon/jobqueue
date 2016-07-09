@@ -17,6 +17,10 @@ val create :
   year:int -> month:int -> day:int ->
   hour:int -> min:int -> sec:float -> t
 
+val set_time :
+  ?hour:int -> ?min:int -> ?sec:float ->
+  t -> t
+
 val of_string : string -> t
 val of_string_opt : string -> t option
 val to_string : t -> string

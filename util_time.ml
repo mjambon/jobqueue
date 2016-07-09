@@ -54,24 +54,6 @@ let now () = of_float (Unix.gettimeofday ())
 
 (* Convenience methods to get events for the entire day *)
 
-let start_of_today () =
-  let t = Unix.localtime (Unix.gettimeofday ()) in
-  let (u, _) = Unix.mktime {t with
-    Unix.tm_hour = 0;
-    Unix.tm_min = 0;
-    Unix.tm_sec = 0;
-  } in
-  of_float u
-
-let end_of_today () =
-  let t = Unix.localtime (Unix.gettimeofday ()) in
-  let (u, _) = Unix.mktime {t with
-    Unix.tm_hour = 23;
-    Unix.tm_min = 59;
-    Unix.tm_sec = 59;
-  } in
-  of_float u
-
 let utc_start_of_week x =
   let t = x.unixtime in
   let tm = Unix.gmtime t in
