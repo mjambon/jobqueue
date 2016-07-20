@@ -20,6 +20,9 @@ let base64url_encode s =
       | c   -> c)
     (Cryptokit.(transform_string (Base64.encode_compact ()) s))
 
+let base64compact_pad_encode s =
+  Cryptokit.(transform_string (Base64.encode_compact_pad ()) s)
+
 let base64_encode s =
   Cryptokit.(transform_string (Base64.encode_multiline ()) s)
 
