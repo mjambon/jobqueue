@@ -46,10 +46,10 @@ module US = struct
   let num_year x =
     sprintf "%02d" (1900 + x.tm_year)
 
-  (* "August 13, 2019" *)
+  (* "August 3, 2019" *)
   let date_only x =
-    sprintf "%s %i, %s"
-      (month x) x.tm_mday (year x)
+    sprintf "%s %s, %s"
+      (month x) (month_day x) (year x)
 
   (* "12/31/2015" *)
   let num_date_only x =
