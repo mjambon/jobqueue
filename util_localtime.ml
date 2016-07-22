@@ -113,7 +113,7 @@ let of_unix_tm x subsecond =
     ~sec: (float x.tm_sec +. subsecond)
 
 let to_unix_tm x =
-  {
+  let tm = {
     Unix.tm_sec = truncate x.sec;
     tm_min = x.min;
     tm_hour = x.hour;
@@ -123,8 +123,10 @@ let to_unix_tm x =
     tm_wday = 0; (* ignored by Unix.mktime *)
     tm_yday = 0; (* ignored by Unix.mktime *)
     tm_isdst = false; (* ignored by Unix.mktime *)
-  }, fpart x.sec
-
+  } in
+  (* normalize and complete missing fields *)
+  let t, tm = Unix.mktime tm in
+  tm, fpart x.sec
 
 let of_float t =
   let open Unix in

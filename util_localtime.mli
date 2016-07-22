@@ -40,11 +40,7 @@ val to_float : t -> float
 
 val of_unix_tm : Unix.tm -> float -> t
 val to_unix_tm : t -> Unix.tm * float
-  (* Convert from/to Unix.tm record and remaining fraction of one second.
-
-     Warning: fields tm_wday, tm_yday and tm_isdst are initialized
-     with meaningless values; this is fine for passing to Unix.mktime.
-  *)
+  (* Convert from/to Unix.tm record and remaining fraction of one second. *)
 
 val fpart : float -> float
   (*

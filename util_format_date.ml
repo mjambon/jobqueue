@@ -10,9 +10,17 @@ module US = struct
     [| "Sunday"; "Monday"; "Tuesday"; "Wednesday";
        "Thursday"; "Friday"; "Saturday" |]
 
+  let short_week_days =
+    [| "Sun"; "Mon"; "Tue"; "Wed";
+       "Thu"; "Fri"; "Sat" |]
+
   (* "Wednesday" *)
   let week_day x =
     week_days.(x.tm_wday)
+
+  (* "Wed" *)
+  let short_week_day x =
+    short_week_days.(x.tm_wday)
 
   (* "3" *)
   let month_day x =
@@ -61,5 +69,4 @@ module US = struct
         h0 - 12, "pm"
     in
     sprintf "%d:%02d %s" h m ampm
-
 end
