@@ -236,7 +236,7 @@ let timezone_mapping = [
 (* Convert standard names into colloquial ones *)
 let display_name tz =
   try List.assoc tz timezone_mapping
-  with Not_found -> "(Time zone: " ^ tz ^ ")"
+  with Not_found -> tz
 
 let test_utc_of_local () =
   let tz = "America/New_York" in
