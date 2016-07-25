@@ -1,6 +1,6 @@
-type tz = string
+type t = string
 
-let fallback_timezone = "America/Los_Angeles"
+let fallback_timezone : t = "America/Los_Angeles"
 
 (*
    OCaml does not provide Unix.clearenv, but we need to set TZ back
@@ -43,13 +43,6 @@ let midnight = Util_timeonly.create ~hour:0 ~min:0 ~sec:0.
 
 let utc_of_day tz day =
   utc_of_local tz (Util_localtime.of_pair day midnight)
-
-let day_of_week tz utc =
-  with_timezone tz (fun () ->
-    let unixtime = Util_time.to_float utc in
-    let x = Unix.localtime unixtime in
-    x.Unix.tm_wday
-  )
 
 (*
   TODO: list timezones for each country and countries for each continent.
