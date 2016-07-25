@@ -24,17 +24,6 @@ val to_string : t -> string
 val unwrap : t -> string
   (* can be achieved directly with coercion: (mydate :> string) *)
 
-val format : fmt:string -> t -> string
-  (* !!!!! DO NOT USE !!!!!  This prints the UTC date!
-
-     TODO: move tzinfo/tzinfo.ml -> util/util_tzinfo
-           implement Util_date_format.format : timezone -> fmt -> t -> string
-
-     Format a date using Netdate.format. See documentation at URL below.
-     http://projects.camlcity.org\
-       /projects/dl/ocamlnet-3.2/doc/html-main/Netdate.html
-  *)
-
 val of_float : float -> t
   (* Format a date given in seconds since 1970-01-01 UTC *)
 

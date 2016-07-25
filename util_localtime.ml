@@ -155,6 +155,9 @@ let test_conversions () =
   assert (conv "12345-12-20T23:59:57.56789" = "12345-12-20T23:59:57.568");
   true
 
+let format ~fmt x =
+  Nldate.mk_date ~fmt (to_float x)
+
 let tests = [
   "conversions", test_conversions;
 ]

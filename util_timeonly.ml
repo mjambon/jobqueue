@@ -46,8 +46,7 @@ let to_float { hour; min; sec } =
   float hour *. 3600. +. float min *. 60. +. sec
 
 let of_float x =
-  if not (x >= 0. && x < 86400.) then
-    invalid_arg "Util_timeonly.of_float";
+  let x = Util_float.positive_mod x 86400. in
   let sec = mod_float x 60. in
   let min = truncate (mod_float x 3600. /. 60.) in
   let hour = truncate (x /. 3600.) in
@@ -67,6 +66,9 @@ let test_float () =
   let t = to_float x in
   assert (t > 86399.9 && t < 86400.);
   true
+
+let format ~fmt x =
+  Nldate.mk_date ~fmt (to_float x)
 
 let tests = [
   "conversions", test_conversions;

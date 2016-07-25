@@ -27,4 +27,10 @@ val to_string : t -> string
 val wrap : string -> t
 val unwrap : t -> string
 
+val format : fmt:string -> t -> string
+  (* Format a time using Netdate.format. See documentation at URL below.
+     http://projects.camlcity.org\
+       /projects/dl/ocamlnet-3.2/doc/html-main/Netdate.html
+  *)
+
 val tests : (string * (unit -> bool)) list

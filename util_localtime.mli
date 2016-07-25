@@ -51,5 +51,10 @@ val fpart : float -> float
      -1.3 -> 0.7
   *)
 
+val format : fmt:string -> t -> string
+  (* Format a date using Netdate.format. See documentation at URL below.
+     http://projects.camlcity.org\
+       /projects/dl/ocamlnet-3.2/doc/html-main/Netdate.html
+  *)
 
 val tests : (string * (unit -> bool)) list

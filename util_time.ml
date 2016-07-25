@@ -47,9 +47,6 @@ let of_string s =
 
 let to_string x = x.string
 
-let format ~fmt x =
-  Nldate.mk_date ~fmt x.unixtime
-
 let now () = of_float (Unix.gettimeofday ())
 
 (* Convenience methods to get events for the entire day *)

@@ -109,6 +109,9 @@ let test_conversions () =
   assert (of_string_opt "2001-02-29" = None);
   true
 
+let format ~fmt x =
+  Nldate.mk_date ~fmt (to_float x)
+
 let tests = [
   "conversions", test_conversions;
 ]

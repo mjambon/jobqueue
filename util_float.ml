@@ -1,4 +1,8 @@
 (*
+   Miscellaneous utilities dealing with floats.
+*)
+
+(*
    Round a float to the nearest int
 *)
 let round x =
@@ -34,6 +38,8 @@ let test_equal_rel () =
   assert (equal_rel ~prec:0. 0. 0.);
   true
 
+let ( =~ ) a b = equal_rel a b
+
 (*
    Equality between two numbers, using absolute precision
 *)
@@ -52,8 +58,24 @@ let test_equal_abs () =
   assert (equal_abs ~prec:0.1 (-1.) (-1.05));
   true
 
+(* Like mod_float, but return a number between 0 and m, even for negative x. *)
+let positive_mod x m =
+  if not (m > 0.) then
+    invalid_arg "Util_timeonly.modulo";
+  if x >= 0. then
+    mod_float x m
+  else
+    mod_float x m +. m
+
+let test_positive_mod () =
+  assert (positive_mod 17. 4. =~ 1.);
+  assert (positive_mod 15. 4. =~ 3.);
+  assert (positive_mod (-5.) 4. =~ 3.);
+  true
+
 let tests = [
   "round", test_round;
   "equal_rel", test_equal_rel;
   "equal_abs", test_equal_abs;
+  "positive_mod", test_positive_mod;
 ]

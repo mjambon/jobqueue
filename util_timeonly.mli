@@ -18,6 +18,19 @@ val wrap : string -> t
 val unwrap : t -> string
 
 val of_float : float -> t
+  (* Interpret the input as a number of seconds since midnight on some day.
+     The result is guaranteed to be in the range 0:00:00.000-23:59:59.999
+  *)
+
 val to_float : t -> float
+  (* Return the number of seconds since the beginning of the day. *)
+
+val format : fmt:string -> t -> string
+  (* Format a time using Netdate.format. See documentation at URL below.
+     http://projects.camlcity.org\
+       /projects/dl/ocamlnet-3.2/doc/html-main/Netdate.html
+
+     Don't use this to format the date part, or you'll get 1970-01-01.
+  *)
 
 val tests : (string * (unit -> bool)) list

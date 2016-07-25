@@ -3,10 +3,14 @@ OCAML_LIBS = $(OCAML_LIBS_util)
 FILES[] =
   util_test
   util_string
+# Universal time and RFC-3339 formatting
   util_time
-  util_localtime
+# Switch to specified timezone, list timezones
+  util_timezone
+# Calendar times (relative to some unspecified timezone or origin)
   util_dateonly
   util_timeonly
+  util_localtime
   util_format_date
   util_enc
   util_hex
