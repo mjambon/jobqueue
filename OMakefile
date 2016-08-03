@@ -13,6 +13,8 @@ FILES[] =
   util_localtime
   util_enc
   util_hex
+  util_sha256
+  util_hmac_sha256
   util_rng
   util_exn
   util_text

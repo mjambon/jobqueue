@@ -7,6 +7,10 @@ let hex_digits_lower = [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';
 let hex_digits_upper = [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';
                           '8'; '9'; 'A'; 'B'; 'C'; 'D'; 'E'; 'F' |]
 
+let hex_encode s =
+  let transform = Cryptokit.Hexa.encode () in
+  Cryptokit.transform_string transform s
+
 let encode ?(upper=false) s =
   let hex_digits = if upper then hex_digits_upper else hex_digits_lower in
   let l = String.length s in
