@@ -267,6 +267,12 @@ let find_minimum cmp get_value get_key l =
       | None -> return None
       | Some v -> return (Some (v, stream))
 
+type 'a exception_recovery = [
+  | `End_stream
+  | `Skip
+  | `Value of 'a
+]
+
 let merge ?(cmp = compare) ?(exn_handler = fail) ~get_key streams =
   let get_opt_value stream =
     Lwt_stream.peek stream
@@ -299,7 +305,13 @@ let merge ?(cmp = compare) ?(exn_handler = fail) ~get_key streams =
                  Lwt_stream.junk stream >>= fun () ->
                  return (Some v)
           )
-          exn_handler
+          (fun e ->
+             exn_handler e >>= fun (x : _ exception_recovery) ->
+             match x with
+             | `End_stream -> return None
+             | `Skip -> next ()
+             | `Value x -> return (Some x)
+          )
       in
       Lwt_stream.from next
 
