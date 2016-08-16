@@ -250,7 +250,7 @@ let test_paged_stream () =
 let find_minimum cmp get_value get_key l =
   match l with
   | [] ->
-      invalid_arg "Util_lwt_stream.find_optimum"
+      assert false
   | first_lazy_v :: more ->
       get_value first_lazy_v >>= fun first_v ->
       let first_k = get_key first_v in
@@ -266,12 +266,6 @@ let find_minimum cmp get_value get_key l =
       match opt_v with
       | None -> return None
       | Some v -> return (Some (v, stream))
-
-type 'a exception_recovery = [
-  | `End_stream
-  | `Skip
-  | `Value of 'a
-]
 
 let merge ?(cmp = compare) ?(exn_handler = fail) ~get_key streams =
   let get_opt_value stream =
@@ -305,13 +299,7 @@ let merge ?(cmp = compare) ?(exn_handler = fail) ~get_key streams =
                  Lwt_stream.junk stream >>= fun () ->
                  return (Some v)
           )
-          (fun e ->
-             exn_handler e >>= fun (x : _ exception_recovery) ->
-             match x with
-             | `End_stream -> return None
-             | `Skip -> next ()
-             | `Value x -> return (Some x)
-          )
+          exn_handler
       in
       Lwt_stream.from next
 

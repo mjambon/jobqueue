@@ -21,20 +21,16 @@ val create_paged_stream:
      must be fetched.
   *)
 
-
-type 'a exception_recovery = [
-  | `End_stream
-  | `Skip
-  | `Value of 'a
-]
-
 val merge :
   ?cmp:('k -> 'k -> int) ->
-  ?exn_handler:(exn -> 'v exception_recovery Lwt.t) ->
+  ?exn_handler:(exn -> 'v option Lwt.t) ->
   get_key:('v -> 'k) ->
   'v Lwt_stream.t list -> 'v Lwt_stream.t
   (*
      Merge ordered streams into one.
+
+     The exception handler may raise an exception, return some value,
+     or interrupt the stream without an error by returning None.
   *)
 
 (* Testing *)
