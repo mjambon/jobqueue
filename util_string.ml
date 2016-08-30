@@ -14,6 +14,20 @@ let ascii_lowercase s =
 let test_ascii_lowercase () =
   ascii_lowercase "AbCd\xc9F" = "abcd\xc9f"
 
+let ascii_capitalize s =
+  match s with
+  | "" -> s
+  | _ ->
+      match s.[0] with
+      | 'a'..'z' -> String.capitalize s
+      | _ -> s
+
+let test_ascii_capitalize () =
+  assert (String.capitalize "\xe0" <> "\xe0");
+  assert (ascii_capitalize "\xe0" = "\xe0");
+  assert (ascii_capitalize "ab" = "Ab");
+  true
+
 let whitespace_rex = Pcre.regexp "[ \t\r\n]+"
 
 let compact_whitespace s =
@@ -39,5 +53,6 @@ let parse_prefix prefix s =
 
 let tests = [
   "ascii lowercase", test_ascii_lowercase;
+  "ascii capitalize", test_ascii_capitalize;
   "compact whitespace", test_compact_whitespace;
 ]
