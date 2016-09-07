@@ -77,8 +77,27 @@ val next : t -> t
   (* return a new date whose string representation is 1 ms later. *)
 
 val compare : t -> t -> int
+
+val ( = ) : t -> t -> bool
+val ( < ) : t -> t -> bool
+val ( > ) : t -> t -> bool
+val ( <= ) : t -> t -> bool
+val ( >= ) : t -> t -> bool
+
 val min : t -> t -> t
 val max : t -> t -> t
+
+(* Meant to be used as `let open Util_time.Op in` *)
+module Op : sig
+  val ( = ) : t -> t -> bool
+  val ( < ) : t -> t -> bool
+  val ( > ) : t -> t -> bool
+  val ( <= ) : t -> t -> bool
+  val ( >= ) : t -> t -> bool
+
+  val min : t -> t -> t
+  val max : t -> t -> t
+end
 
 val hour_of_day : int -> t -> t
   (* return a new date with the time set to the specified hour *)
@@ -106,11 +125,5 @@ module As_unixtime : sig
   val of_string : string -> t
   val to_string : t -> string (* rounded *)
 end
-
-val ( = ) : t -> t -> bool
-val ( < ) : t -> t -> bool
-val ( > ) : t -> t -> bool
-val ( <= ) : t -> t -> bool
-val ( >= ) : t -> t -> bool
 
 val tests : (string * (unit -> bool)) list

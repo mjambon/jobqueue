@@ -132,8 +132,17 @@ let wrap = of_string
 let unwrap = to_string
 
 let compare a b = Pervasives.compare a.unixtime b.unixtime
-let min a b = if compare a b <= 0 then a else b
-let max a b = if compare a b >= 0 then a else b
+
+module Op = struct
+  let min a b = if compare a b <= 0 then a else b
+  let max a b = if compare a b >= 0 then a else b
+
+  let ( = ) a b = compare a b = 0
+  let ( < ) a b = compare a b < 0
+  let ( > ) a b = compare a b > 0
+  let ( <= ) a b = compare a b <= 0
+  let ( >= ) a b = compare a b >= 0
+end
 
 let hour_of_day h date_time =
   let gmtime = Unix.gmtime date_time.unixtime in
@@ -215,11 +224,7 @@ module As_unixtime = struct
     true
 end
 
-let ( = ) a b = compare a b = 0
-let ( < ) a b = compare a b < 0
-let ( > ) a b = compare a b > 0
-let ( <= ) a b = compare a b <= 0
-let ( >= ) a b = compare a b >= 0
+include Op
 
 let tests = [
   "round milliseconds", test_round_milliseconds;
