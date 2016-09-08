@@ -8,6 +8,7 @@
 
 (* date-time: "2012-11-13T17:33:31.192-08:00" *)
 type t = private {
+  abstract_value: Util_abstract_value.t;
   unixtime : float;
   string : string;
 }

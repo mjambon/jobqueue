@@ -1,4 +1,5 @@
 type t = {
+  abstract_value: Util_abstract_value.t;
   unixtime : float;
   string : string;
 }
@@ -26,6 +27,7 @@ let test_round_milliseconds () =
 let of_float t =
   let t = round_milliseconds t in
   {
+    abstract_value = Util_abstract_value.create ();
     unixtime = t;
     string =
       Nldate.mk_internet_date
@@ -180,6 +182,7 @@ let test_diffs () =
   true
 
 let test_recover () =
+  let open Op in
   let conv t =
     let x1 = of_float t in
     let x2 = of_string (to_string x1) in

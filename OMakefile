@@ -2,6 +2,7 @@ OCAML_LIBS = $(OCAML_LIBS_util)
 
 FILES[] =
   util_test
+  util_abstract_value
   util_string
 # Universal time and RFC-3339 formatting
   util_time
