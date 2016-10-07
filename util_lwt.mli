@@ -50,7 +50,18 @@ val join4 :
 val join5 :
   'a Lwt.t ->
   'b Lwt.t ->
-  'c Lwt.t -> 'd Lwt.t -> 'e Lwt.t -> ('a * 'b * 'c * 'd * 'e) Lwt.t
+  'c Lwt.t ->
+  'd Lwt.t ->
+  'e Lwt.t -> ('a * 'b * 'c * 'd * 'e) Lwt.t
+
+(* Combine the result of 5 threads running concurrently into a tuple *)
+val join6 :
+  'a Lwt.t ->
+  'b Lwt.t ->
+  'c Lwt.t ->
+  'd Lwt.t ->
+  'e Lwt.t ->
+  'f Lwt.t -> ('a * 'b * 'c * 'd * 'e * 'f) Lwt.t
 
 (* true iff at least one input evaluates to true *)
 val or_ : bool Lwt.t list -> bool Lwt.t

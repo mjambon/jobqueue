@@ -51,6 +51,9 @@ let join4 a b c d =
 let join5 a b c d e =
   bind5 a b c d e (fun a b c d e -> return (a, b, c, d, e))
 
+let join6 a b c d e f =
+  bind6 a b c d e f (fun a b c d e f -> return (a, b, c, d, e, f))
+
 let or_ l =
   Lwt_list.exists_p (fun x -> x) l
 
