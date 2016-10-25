@@ -121,6 +121,35 @@ let test_group_by_key () =
                        3, [6; 7]]
 
 (*
+   Split list into uniques and the rest.
+*)
+let split_unique_full get_key l =
+  let tbl = Hashtbl.create (2 * List.length l) in
+  BatList.partition (fun x ->
+    let k = get_key x in
+    if Hashtbl.mem tbl k then false
+    else (
+      Hashtbl.add tbl k ();
+      true
+    )
+  ) l
+
+let unique_first_full get_key l =
+  let uniques, other = split_unique_full get_key l in
+  uniques @ other
+
+let unique_first l =
+  unique_first_full (fun x -> x) l
+
+let test_unique_first () =
+  let f l = unique_first_full floor l in
+  assert (f [] = []);
+  assert (f [123.] = [123.]);
+  assert (f [1.1; 1.; 2.] = [1.1; 2.; 1.]);
+  assert (f [5.; 5.1; 2.; 3.; 3.1; 2.1; 4.] = [5.; 2.; 3.; 4.; 5.1; 3.1; 2.1]);
+  true
+
+(*
    Find the minimum of a non-empty list according to the given
    comparison function `cmp` (e.g. Pervasives.compare).
    `list_first cmp l` is equivalent to `List.hd (List.stable_sort cmp l)`
@@ -231,6 +260,7 @@ let find l f = BatList.find f l
 
 
 let tests = [
+  "unique first", test_unique_first;
   "get_first", test_get_first;
   "get_majority", test_get_majority;
   "get_opt_majority", test_get_opt_majority;
