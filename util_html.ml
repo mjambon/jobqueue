@@ -222,8 +222,28 @@ let test_blank_quote () =
   ignore (of_text ">"); (* test against infinite loop *)
   true
 
+let html_start =
+  Pcre.regexp "\\A[ \r\n\t]*<(?:html\
+                               |HTML\
+                               |!doctype\
+                               |!DOCTYPE\
+                               |!--)[^a-zA-Z]"
+
+let looks_like_html s =
+  Pcre.pmatch ~rex:html_start s
+
+let test_looks_like_html () =
+  assert (not (looks_like_html ""));
+  assert (not (looks_like_html "&amp;"));
+  assert (looks_like_html "<html>");
+  assert (looks_like_html "\n <HTML >");
+  assert (looks_like_html "<!doctype>");
+  assert (looks_like_html "<!-- blah -->");
+  true
+
 let tests = [
   "map contiguous", test_map_contiguous;
   "from text", test_from_text;
   "blank quote", test_blank_quote;
+  "looks like html", test_looks_like_html;
 ]
