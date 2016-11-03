@@ -4,6 +4,7 @@ FILES[] =
   util_test
   util_abstract_value
   util_string
+  util_json
 # Universal time and RFC-3339 formatting
   util_time
 # Switch to specified timezone, list timezones
