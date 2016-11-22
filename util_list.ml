@@ -62,7 +62,9 @@ let union l1 l2 = union_full (fun x -> x) l1 l2
 (*
    Return a list of elements from the first list whose keys
    exist in the second list as well.
-   The result does not contain duplicates.
+   Duplicates are removed.
+   The result is the first list from which elements have been removed,
+   i.e. the order of the first list is preserved.
 *)
 let inter_full get_key1 get_key2 l1 l2 =
   let tbl = Hashtbl.create (2 * List.length l2) in
@@ -95,6 +97,43 @@ let test_inter () =
   let result = inter [1;2;3;4;3] [5;4;6;1;4;3] in
   let expected = [1;3;4] in
   List.sort compare result = List.sort compare expected
+
+(*
+   Sort a list of values according to some order specified by a list of
+   keys.
+   Values whose key doesn't appear in the list of keys are moved to the end.
+*)
+let reorder get_key keys values =
+  let tbl = Hashtbl.create (2 * List.length keys) in
+  BatList.iteri (fun i k ->
+    if not (Hashtbl.mem tbl k) then
+      Hashtbl.add tbl k i
+  ) keys;
+  let default = List.length keys in
+  let l =
+    BatList.map (fun v ->
+      try (Hashtbl.find tbl (get_key v), v)
+      with Not_found -> (default, v)
+    ) values
+  in
+  let l = BatList.stable_sort (fun (i, _) (j, _) -> compare i j) l in
+  BatList.map snd l
+
+let test_reorder () =
+  let f keys values = reorder (fun k -> k) keys values in
+  (match f [4;2;6;3] [1;2;3;4;5;6;7] with
+   | 4 :: 2 :: 6 :: 3 :: tail ->
+       assert (List.sort compare tail = [1; 5; 7])
+   | _ ->
+       assert false
+  );
+  (match f [6;4;2;6;3] [1;1;2;3;4;5;6;7] with
+   | 6 :: 6 :: 4 :: 2 :: 3 :: tail ->
+       assert (List.sort compare tail = [1; 1; 5; 7])
+   | _ ->
+       assert false
+  );
+  true
 
 let group_by_key pair_list =
   let tbl = Hashtbl.create (List.length pair_list) in
@@ -267,5 +306,6 @@ let tests = [
   "sort", test_sort_full;
   "unique", test_unique;
   "inter", test_inter;
+  "reorder", test_reorder;
   "group by key", test_group_by_key;
 ]
