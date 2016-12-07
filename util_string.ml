@@ -43,16 +43,33 @@ let test_compact_whitespace () =
 let ascii_normalize s =
   compact_whitespace (ascii_lowercase s)
 
-let parse_prefix prefix s =
-  let open BatString in
-  if starts_with s prefix then
-    let start = length prefix in
-    Some (sub s start (length s - start))
-  else
-    None
+(*
+   Separate prefix from what follows, based on a single character separator:
+
+     sep = ':'
+     "foo:bar" -> ("foo", "bar")
+     "bar"     -> ("", "bar")
+*)
+let split_prefix ~sep s =
+  try
+    let i = String.index s sep in
+    let len = String.length s in
+    (String.sub s 0 i, String.sub s (i + 1) (len - i - 1))
+  with Not_found ->
+    ("", s)
+
+let test_split_prefix () =
+  assert (split_prefix ~sep:':' "" = ("", ""));
+  assert (split_prefix ~sep:':' "a" = ("", "a"));
+  assert (split_prefix ~sep:':' "a:b" = ("a", "b"));
+  assert (split_prefix ~sep:':' ":b" = ("", "b"));
+  assert (split_prefix ~sep:':' "a:" = ("a", ""));
+  assert (split_prefix ~sep:':' "ab:cde" = ("ab", "cde"));
+  true
 
 let tests = [
   "ascii lowercase", test_ascii_lowercase;
   "ascii capitalize", test_ascii_capitalize;
   "compact whitespace", test_compact_whitespace;
+  "split prefix", test_split_prefix;
 ]
