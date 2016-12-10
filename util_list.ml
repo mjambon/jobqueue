@@ -160,6 +160,37 @@ let test_group_by_key () =
                        3, [6; 7]]
 
 (*
+   Group elements with an identical key,
+   which must be hashable and comparable (usable as key with Hashtbl).
+   The `get_representative` function must return a key and a value
+   that is usable as the representative of the cluster.
+*)
+let group_by get_representative l =
+  let pair_list =
+    List.rev_map (fun x ->
+      let k, v = get_representative x in
+      (k, (v, x))
+    ) l
+  in
+  let groups = group_by_key pair_list in
+  BatList.map (fun (k, l) ->
+    match l with
+    | [] -> assert false
+    | (v, x) :: _ -> (v, BatList.map snd l)
+  ) groups
+
+let test_group_by () =
+  let get_representative (k, v) = (k, 10 + v) in
+  let l =
+    group_by get_representative
+      [1,2;
+       1,4]
+  in
+  match l with
+  | [ (12|14), ([1,2; 1,4]|[1,4; 1,2]) ] -> true
+  | _ -> false
+
+(*
    Split list into uniques and the rest.
 *)
 let split_unique_full get_key l =
@@ -308,4 +339,5 @@ let tests = [
   "inter", test_inter;
   "reorder", test_reorder;
   "group by key", test_group_by_key;
+  "group by", test_group_by;
 ]
