@@ -314,6 +314,34 @@ let to_table l get_key =
   List.iter (fun x -> Hashtbl.replace tbl (get_key x) x) l;
   tbl
 
+let optimum l prefer_right_arg =
+  match l with
+  | [] -> invalid_arg "Util_list.optimum"
+  | first :: rest ->
+      List.fold_left (fun acc x ->
+        if prefer_right_arg acc x then x
+        else acc
+      ) first rest
+
+(* Find the maximum element of a list, preferring the leftmost occurrence. *)
+let maximum l cmp =
+  optimum l (fun a b -> cmp a b < 0)
+
+(* Find the minimum element of a list, preferring the leftmost occurrence. *)
+let minimum l cmp =
+  optimum l (fun a b -> cmp a b > 0)
+
+let test_optimum () =
+  assert (
+    maximum [0.; 1.1; 1.2; 0.] (fun a b -> compare (truncate a) (truncate b))
+    = 1.1
+  );
+  assert (
+    minimum [1.; 0.2; 0.1; 1.] (fun a b -> compare (truncate a) (truncate b))
+    = 0.2
+  );
+  true
+
 (*
    Common functions with arguments in a better order,
    and which won't blow the stack
