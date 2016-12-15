@@ -368,4 +368,5 @@ let tests = [
   "reorder", test_reorder;
   "group by key", test_group_by_key;
   "group by", test_group_by;
+  "optimum", test_optimum;
 ]
