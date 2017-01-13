@@ -343,6 +343,34 @@ let test_optimum () =
   true
 
 (*
+   Return true if a predicate matches at least n elements of the list.
+   `List.exists f lst` is equivalent to `List.exists_n f 1 lst`.
+*)
+let rec exists_n n l f =
+  if n <= 0 then
+    true
+  else
+    match l with
+    | [] ->
+        false
+    | x :: l ->
+        let n =
+          if f x then (n-1)
+          else n
+        in
+        exists_n n l f
+
+let test_exists_n () =
+  let f x = x = 0 in
+  assert (exists_n 3 [1;2;3;0;1;0;1;0;0] f);
+  assert (exists_n 3 [0;0;0] f);
+  assert (not (exists_n 1 [] f));
+  assert (not (exists_n 1 [5] f));
+  assert (exists_n 0 [5] f);
+  assert (exists_n 0 [] f);
+  true
+
+(*
    Common functions with arguments in a better order,
    and which won't blow the stack
 *)
@@ -369,4 +397,5 @@ let tests = [
   "group by key", test_group_by_key;
   "group by", test_group_by;
   "optimum", test_optimum;
+  "exists_n", test_exists_n;
 ]
