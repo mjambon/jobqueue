@@ -309,10 +309,26 @@ let test_get_opt_majority () =
 (*
    Put a list of items into a hash table, removing duplicates.
 *)
-let to_table l get_key =
+let make_kv_table l get_kv =
   let tbl = Hashtbl.create (List.length l) in
-  List.iter (fun x -> Hashtbl.replace tbl (get_key x) x) l;
+  List.iter (fun x ->
+    let k, v = get_kv x in
+    Hashtbl.replace tbl k v
+  ) l;
   tbl
+
+(* Simpler interface to `make_kv_table` *)
+let to_kv_table pairs =
+  make_kv_table pairs (fun x -> x)
+
+(* Simpler interface to `make_kv_table` *)
+let to_table l get_key =
+  make_kv_table l (fun x -> (get_key x, x))
+
+(* Simpler interface to `to_kv_table`, storing no value.
+   Meant to be used with `Hashtbl.mem` for efficient existence. *)
+let to_mem_table l =
+  make_kv_table l (fun k -> (k, ()))
 
 let optimum l prefer_right_arg =
   match l with
