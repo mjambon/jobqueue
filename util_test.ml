@@ -1,5 +1,24 @@
 open Printf
 
+let important_line_prefix = "| "
+
+let print_running name =
+  eprintf "%s%-30s%s\n%!"
+    important_line_prefix name "running..."
+
+let print_ended name =
+  eprintf "%s%-30s%s\n%!"
+    important_line_prefix name "ended."
+
+let print_outcome name success =
+  let status_msg =
+    match success with
+    | true -> "OK"
+    | false -> "ERROR"
+  in
+  eprintf "%s%-30s%s\n%!"
+    important_line_prefix name status_msg
+
 let run_test (k, f) =
   flush stdout;
   flush stderr;
@@ -7,7 +26,7 @@ let run_test (k, f) =
     try f ()
     with e ->
       eprintf "Uncaught exception: %s\n" (Trax.to_string e);
-      false
+      None
   in
   (k, success)
 
@@ -21,21 +40,27 @@ let flatten tests =
     ) tests
   )
 
-let print_error (k, success) =
-  if not success then
-    eprintf "FAILED %s\n" k
-
 (*
    Run a list of tests.
 *)
-let run (l : (string * (unit -> bool)) list) =
+let run test_suite_name (l : (string * (unit -> 'a option)) list) =
   let results = List.map run_test l in
-  List.iter print_error results;
+  List.iter (fun (name, opt) -> print_outcome name (opt <> None)) results;
   let n = List.length results in
   let successes =
-    List.fold_left
-      (fun acc (k, success) -> if success then acc + 1 else acc) 0 results
+    List.length (BatList.filter_map (fun (k, opt) -> opt) results)
   in
-  eprintf "Passed %i/%i tests\n%!" successes n;
-  (successes = n)
+  eprintf "Passed %i/%i %s\n%!" successes n test_suite_name;
+  let total_success = (successes = n) in
+  total_success, results
 
+let simple_run test_suite_name (l : (string * (unit -> bool)) list) : bool =
+  let total_success, data =
+    run test_suite_name (
+      List.map (fun (name, f) ->
+        let g () = if f () then Some () else None in
+        (name, g)
+      ) l
+    )
+  in
+  total_success
