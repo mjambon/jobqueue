@@ -73,9 +73,53 @@ let test_positive_mod () =
   assert (positive_mod (-5.) 4. =~ 3.);
   true
 
+(*
+   Compute the mean of the k or (k+1) values around the median.
+   `k` must be odd.
+   `median_k 1` computes the regular median.
+*)
+let median_k k l =
+  if l = [] then
+    invalid_arg "Util_float.median_k: empty list";
+  if k <= 0 || k mod 2 = 0 then
+    invalid_arg "Util_float.median_k: k must be a positive odd number";
+  let a = Array.of_list l in
+  Array.sort compare a;
+  let n0 = Array.length a in
+  let span =
+    let k =
+      if n0 mod 2 = 0 then
+        k + 1
+      else
+        k
+    in
+    min k n0
+  in
+  let acc = ref 0. in
+  let start = (n0 - span) / 2 in
+  for i = start to start + span - 1 do
+    acc := !acc +. a.(i)
+  done;
+  !acc /. float span
+
+let median l = median_k 1 l
+let median3 l = median_k 3 l
+let median5 l = median_k 5 l
+
+let test_median_k () =
+  assert (median [1.] = 1.);
+  assert (median [1.; 2.] = 3. /. 2.);
+  assert (median [1.; 2.; 10.] = 2.);
+  assert (median3 [0.; 1.; 10.] = 11. /. 3.);
+  assert (median3 [0.; 1.] = 1. /. 2.);
+  assert (median3 [0.; 1.; 10.; 100.] = 111. /. 4.);
+  assert (median3 [0.; 1.; 10.; 100.; 1000.] = 111. /. 3.);
+  true
+
 let tests = [
   "round", test_round;
   "equal_rel", test_equal_rel;
   "equal_abs", test_equal_abs;
   "positive_mod", test_positive_mod;
+  "median_k", test_median_k;
 ]
