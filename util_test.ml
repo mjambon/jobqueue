@@ -16,7 +16,7 @@ let print_outcome name success =
     | true -> "OK"
     | false -> "ERROR"
   in
-  eprintf "%s%-30s%s\n%!"
+  eprintf "%s%-30s %s\n%!"
     important_line_prefix name status_msg
 
 let run_test (k, f) =
