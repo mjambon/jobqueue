@@ -1,3 +1,9 @@
+(*
+   Text-manipulation utilities
+
+   TODO: merge with Util_string.
+*)
+
 open Printf
 open Batteries
 
@@ -12,26 +18,6 @@ let string_of_list f l = "[" ^ (String.concat "; " (List.map f l)) ^ "]"
 let string_of_pair f g (x,y) = Printf.sprintf "(%s, %s)" (f x) (g y)
 let string_of_string_pair (s1,s2) = Printf.sprintf "-H \"%s: %s\"" s1 s2
 let string_of_string_pair_list = string_of_list string_of_string_pair
-
-(*
-  ascii_lowercase only downcases ascii characters A-Z,
-  unlike String.lowercase which assumes iso-8859-1, badly breaking multibyte
-  UTF-8 characters.
-*)
-let ascii_lowercase s0 =
-  let s = String.create (String.length s0) in
-  for i = 0 to String.length s - 1 do
-    let c =
-      match s0.[i] with
-          'A'..'Z' as c -> Char.chr (Char.code c + 32)
-        | c -> c
-    in
-    s.[i] <- c
-  done;
-  s
-
-let test_ascii_lowercase () =
-  ascii_lowercase "ABcd-wxYZ\xC0\xC8G" = "abcd-wxyz\xC0\xC8g"
 
 let validate_utf8 path s =
   if Utf8val.is_allowed_unicode s then None
@@ -104,7 +90,6 @@ let prettify s =
       s
 
 let tests = [
-  "ascii_lowercase", test_ascii_lowercase;
   "utf8 (ascii)",
     (fun () -> Utf8val.is_utf8 "abc");
   "utf8 (byte128)",
