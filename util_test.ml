@@ -3,11 +3,11 @@ open Printf
 let important_line_prefix = "| "
 
 let print_running name =
-  eprintf "%s%-30s%s\n%!"
-    important_line_prefix name "running..."
+  eprintf "%s%-30s %s\n%!"
+    important_line_prefix name "..."
 
 let print_ended name =
-  eprintf "%s%-30s%s\n%!"
+  eprintf "%s%-30s %s\n%!"
     important_line_prefix name "ended."
 
 let print_outcome name success =
