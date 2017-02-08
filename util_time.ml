@@ -166,6 +166,11 @@ let diff_seconds a b =
   let diff_seconds = a_float -. b_float in
   diff_seconds
 
+let diff_hours a b =
+  let diff_seconds = diff_seconds a b in
+  let diff_hours = diff_seconds /. 3600. in
+  diff_hours
+
 let diff_days a b =
   let diff_seconds = diff_seconds a b in
   let diff_days = diff_seconds /. 86400. in
