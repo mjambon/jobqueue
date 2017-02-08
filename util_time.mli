@@ -106,6 +106,9 @@ val hour_of_day : int -> t -> t
 val diff_seconds : t -> t -> float
   (* return difference in seconds between two timestamps *)
 
+val diff_hours : t -> t -> float
+  (* return difference in hours between two timestamps *)
+
 val diff_days : t -> t -> float
   (* return difference in days between two timestamps *)
 
