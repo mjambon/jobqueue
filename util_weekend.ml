@@ -64,3 +64,45 @@ let sub ~timezone t workday_time =
       (to_localtime ~timezone t)
       workday_time
   )
+
+let test_weekend () =
+  (* Daylight savings time change in California on March 12, 2017. *)
+  let timezone = "America/Los_Angeles" in
+
+  (* Dates across the time change. Note the time of the day is the same
+     despite the time change. *)
+  let t1 = Util_time.of_string "2017-03-10T09:00:00-08:00" in
+  let t2 = Util_time.of_string "2017-03-17T09:00:00-07:00" in
+
+  let eq a b = Util_time.compare a b = 0 in
+
+  let time_shift =
+    (Util_time.to_float t2 -. Util_time.to_float t1) -. 7. *. 86400.
+  in
+  assert (time_shift = -3600.);
+
+  (* Subtract 5 workdays from t2 *)
+  assert (
+    eq t1 (
+      sub
+        ~timezone
+        t2
+        (5. *. 86400.)
+    )
+  );
+
+  (* Add 5 workdays to t1 *)
+  assert (
+    eq t2 (
+      add
+        ~timezone
+        t1
+        (5. *. 86400.)
+    )
+  );
+
+  true
+
+let tests = [
+  "weekend", test_weekend;
+]
