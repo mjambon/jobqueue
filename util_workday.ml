@@ -247,6 +247,9 @@ let test_workdays () =
   assert (sub sunday8 day_length
           = print (saturday7 -. day_length));
 
+  assert (sub (saturday7 +. 123.) (2. *. day_length)
+          = print thursday5);
+
   true
 
 let tests = [
