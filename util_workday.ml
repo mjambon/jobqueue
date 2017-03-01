@@ -16,6 +16,9 @@ module type Param = sig
   type date
     (* User-provided date type *)
 
+  val string_of_date : date -> string
+    (* For logging and debugging purposes *)
+
   val deconstruct : date -> (date * float)
     (* Decompose a date into the start of the day and the number of
        seconds from the start of the day. *)
@@ -33,6 +36,9 @@ end
 
 module type S = sig
   include Param
+
+  val debug : bool ref
+    (* Whether to print extra verbose information on the internals *)
 
   (*
      Add or subtract time to a date, skipping days
@@ -77,6 +83,8 @@ let test_div () =
 module Make (Param : Param) : S with type date = Param.date = struct
   include Param
 
+  let debug = ref false
+
   let add ~is_workday from worktime =
     (* t0 is the start of the current day,
        dt0 is the duration elapsed on that day. *)
@@ -107,12 +115,13 @@ module Make (Param : Param) : S with type date = Param.date = struct
 
     let rec sub_days t offset_workdays =
       assert (offset_workdays <= 0);
-      if is_workday t then
-        if offset_workdays = 0 then t
-        else
-          sub_days (sub_day t) (offset_workdays + 1)
+      if offset_workdays = 0 then t
       else
-        sub_days (sub_day t) offset_workdays
+        let previous_day = sub_day t in
+        if is_workday previous_day then
+          sub_days previous_day (offset_workdays + 1)
+        else
+          sub_days previous_day offset_workdays
     in
 
     (* t2 is the result. *)
@@ -123,6 +132,23 @@ module Make (Param : Param) : S with type date = Param.date = struct
         sub_days t1 offset_workdays
     in
 
+    if !debug then (
+      printf "\
+from = %s, add worktime = %.0f
+  t0 = %s
+  t1 = %s
+  offset_workdays = %i
+  offset_seconds = %.0f
+  t2 = %s
+%!"
+        (string_of_date from) worktime
+        (string_of_date t0)
+        (string_of_date t1)
+        offset_workdays
+        offset_seconds
+        (string_of_date t2)
+    );
+
     t2
 
   let sub ~is_workday from worktime =
@@ -131,6 +157,8 @@ end
 
 module Test_param = struct
   type date = float
+
+  let string_of_date date = sprintf "%.0f" date
 
   let time_only t =
     if t >= 0. then
@@ -180,7 +208,10 @@ let test_workdays () =
   let saturday0 = 0. in
   let _sunday1 = day_length in
   let monday2 = 2. *. day_length in
+  let _tuesday3 = 3. *. day_length in
   let thursday5 = 5. *. day_length in
+  let saturday7 = 7. *. day_length in
+  let sunday8 = 8. *. day_length in
 
   let add t dt =
     let t2 = Test.add ~is_workday t dt in
@@ -197,6 +228,8 @@ let test_workdays () =
     x
   in
 
+  Test.debug := true;
+
   assert (add monday2 1. = monday2 +. 1.);
   assert (add saturday0 1. = add monday2 1.);
   assert (add (thursday5 +. 100.) (5. *. day_length)
@@ -206,6 +239,13 @@ let test_workdays () =
   assert (sub (monday2 +. 1.) 2. = saturday0 -. 1.);
   assert (sub (thursday5 +. 100.) (5. *. day_length)
           = print (thursday5 +. 100. -. 7. *. day_length));
+
+  assert (sub thursday5 day_length
+          = print (thursday5 -. day_length));
+  assert (sub saturday7 day_length
+          = print (saturday7 -. day_length));
+  assert (sub sunday8 day_length
+          = print (saturday7 -. day_length));
 
   true
 

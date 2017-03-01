@@ -8,6 +8,10 @@
 module Param = struct
   type date = Util_dateonly.t * Util_timeonly.t
 
+  let string_of_date (a, b) =
+    Printf.sprintf "%s, %s"
+      (Util_dateonly.to_string a) (Util_timeonly.to_string b)
+
   let deconstruct (date_only, time_only) =
     ((date_only, Util_timeonly.of_float 0.),
      Util_timeonly.to_float time_only)
