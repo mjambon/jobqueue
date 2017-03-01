@@ -78,11 +78,12 @@ module Make (Param : Param) : S with type date = Param.date = struct
   include Param
 
   let add ~is_workday from worktime =
-    (* t0 is the start of the current day. *)
-    let t0, worktime0 = deconstruct from in
+    (* t0 is the start of the current day,
+       dt0 is the duration elapsed on that day. *)
+    let t0, dt0 = deconstruct from in
     let worktime_from_t0 =
       if is_workday t0 then
-        worktime0 +. worktime
+        dt0 +. worktime
       else
         worktime
     in
