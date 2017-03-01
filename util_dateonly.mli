@@ -18,6 +18,15 @@ val is_future : t -> bool
 val of_float : float -> t
 val to_float : t -> float
 
+val day_of_the_week : t -> int
+  (* Return the day of the week, as an int ranging from 0 (Sunday)
+     to 6 (Saturday). *)
+
+val add : t -> int -> t
+val sub : t -> int -> t
+  (* Add or subtract a number of days *)
+
+val next_day : t -> t
 val previous_day : t -> t
 
 val of_string : string -> t

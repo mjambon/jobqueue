@@ -62,8 +62,21 @@ let to_float x =
     week_day = -1;
   }
 
-let previous_day d =
-  of_float ((to_float d) -. 86400.)
+let day_of_the_week x =
+  let t = to_float x in
+  Unix.((gmtime t).tm_wday)
+
+let add t days =
+  of_float ((to_float t) +. float days *. 86400.)
+
+let sub t days =
+  add t (-days)
+
+let next_day t =
+  add t 1
+
+let previous_day t =
+  sub t 1
 
 let of_string s =
   Scanf.sscanf s "%d-%d-%d"

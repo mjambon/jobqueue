@@ -14,10 +14,21 @@ let day_length = 86400.
 
 module type Param = sig
   type date
-  val decompose : date -> (date * float)
+    (* User-provided date type *)
+
+  val deconstruct : date -> (date * float)
+    (* Decompose a date into the start of the day and the number of
+       seconds from the start of the day. *)
+
+  val reconstruct : date -> float -> date
+    (* Add seconds (less than 86400) to a date that represents
+       the start of a day. *)
+
   val add_day : date -> date
   val sub_day : date -> date
-  val add_seconds : date -> float -> date
+    (* Add or subtract a whole day to a date.
+       It is fine if it adds a calendar day
+       (which may be 23 or 25 hours) instead of always 24 hours. *)
 end
 
 module type S = sig
@@ -27,8 +38,8 @@ module type S = sig
      Add or subtract time to a date, skipping days
      where `is_workday` returns false.
   *)
-  val add : is_workday:(date -> bool) -> float -> date
-  val sub : is_workday:(date -> bool) -> float -> date
+  val add : is_workday:(date -> bool) -> date -> float -> date
+  val sub : is_workday:(date -> bool) -> date -> float -> date
 end
 
 (*
@@ -63,12 +74,12 @@ let test_div () =
   assert (div (-3.2) 3. =~ (-2, 2.8));
   true
 
-module Make (Param : Param) = struct
+module Make (Param : Param) : S with type date = Param.date = struct
   include Param
 
   let add ~is_workday from worktime =
     (* t0 is the start of the current day. *)
-    let t0, worktime0 = decompose from in
+    let t0, worktime0 = deconstruct from in
     let worktime_from_t0 =
       if is_workday t0 then
         worktime0 +. worktime
@@ -81,7 +92,7 @@ module Make (Param : Param) = struct
     assert (offset_seconds >= 0.);
 
     (* t1 is the date we have to shift by a whole number of days. *)
-    let t1 = add_seconds t0 offset_seconds in
+    let t1 = reconstruct t0 offset_seconds in
 
     let rec add_days t offset_workdays =
       assert (offset_workdays >= 0);
@@ -126,21 +137,15 @@ module Test_param = struct
     else
       mod_float t day_length +. day_length
 
-  let decompose t =
+  let deconstruct t =
     let dt = time_only t in
     t -. time_only t, dt
 
-  let start_of_day t =
-    t -. time_only t
-
-  let end_of_day t =
-    start_of_day t +. day_length
+  let reconstruct t dt =
+    t +. dt
 
   let add_day t = t +. day_length
   let sub_day t = t -. day_length
-
-  let add_seconds t dt =
-    t +. dt
 end
 
 module Test = Make (Test_param)
@@ -156,6 +161,8 @@ let test_workdays () =
   assert (round 1.6 = 2);
   assert (round (-1.4) = -1);
   assert (round (-1.6) = -2);
+
+  let start_of_day t = fst (deconstruct t) in
 
   (* Define weekends as: 0, 1, 7, 8, 14, 15, etc. *)
   let is_workday t =

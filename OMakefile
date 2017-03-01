@@ -15,6 +15,7 @@ FILES[] =
   util_timeonly
   util_localtime
   util_workday
+  util_weekend
   util_enc
   util_hex
   util_sha256
