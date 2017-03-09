@@ -2,6 +2,25 @@
    Various utilities for handling lists
 *)
 
+(*
+   Make a custom comparison function based on a mapping to integers.
+   This is useful when the default order assumed by
+   Pervasives.compare is unsatisfying (or unspecified).
+
+   Example:
+
+     let cmp =
+       compare_int (function
+         | `Small -> 0
+         | `Medium -> 1
+         | `Large -> 2
+       ) in
+     List.sort cmp l
+*)
+let compare_int : ('a -> int) -> 'a -> 'a -> int =
+  fun to_int a b ->
+    compare (to_int a) (to_int b)
+
 let sort_full ?(compare = compare) get_key l =
   let kv_list = List.rev_map (fun v -> (get_key v, v)) l in
   let kv_list = List.sort (fun (k1, v1) (k2, v2) -> compare k2 k1) kv_list in
@@ -339,13 +358,28 @@ let optimum l prefer_right_arg =
         else acc
       ) first rest
 
-(* Find the maximum element of a list, preferring the leftmost occurrence. *)
+let optional f l g =
+  match l with
+  | [] -> None
+  | l -> Some (f l g)
+
+(* Find the maximum element of a non-empty list,
+   preferring the leftmost occurrence. *)
 let maximum l cmp =
   optimum l (fun a b -> cmp a b < 0)
 
-(* Find the minimum element of a list, preferring the leftmost occurrence. *)
+(* Same as `maximum`, returning None if the list is empty. *)
+let opt_maximum l cmp =
+  optional maximum l cmp
+
+(* Find the minimum element of a non-empty list,
+   preferring the leftmost occurrence. *)
 let minimum l cmp =
   optimum l (fun a b -> cmp a b > 0)
+
+(* Same as `minimum`, returning None if the list is empty. *)
+let opt_minimum l cmp =
+  optional minimum l cmp
 
 let test_optimum () =
   assert (
