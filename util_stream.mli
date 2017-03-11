@@ -20,14 +20,14 @@ val select : ('a -> 'b option) -> 'a Stream.t -> 'b Stream.t
 (* map + filter *)
 
 val skip_to : ('a -> bool) -> 'a Stream.t -> 'a Stream.t
-(* Discard lazily non-matching elements of a stream until 
-   one matching element is found. 
+(* Discard lazily non-matching elements of a stream until
+   one matching element is found.
 *)
 
-val really_skip_to : 
+val really_skip_to :
   ?discard: ('a -> unit) ->
   ('a -> bool) -> 'a Stream.t -> int
-(* Discard immediately non-matching elements of a stream until 
+(* Discard immediately non-matching elements of a stream until
    one matching element is found.
    Returns the number of skipped elements.
 *)
