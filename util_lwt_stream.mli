@@ -19,6 +19,11 @@ val create_paged_stream:
      to carry information such as page number.
      The boolean that it returns indicates whether a next page
      must be fetched.
+
+     Errors should be represented as elements e.g.,
+
+       type elem = Elt of t | Error of error
+
   *)
 
 val merge :
