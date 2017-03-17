@@ -1,3 +1,13 @@
+(*
+   Stream utilities
+*)
+
+val fold_left : ('acc -> 'elt -> 'acc) -> 'acc -> 'elt Stream.t -> 'acc
+(* Scan and accumulate.
+   Same as List.fold_left, but on a stream. *)
+
+val to_list : 'a Stream.t -> 'a list
+(* Turn a stream into a list *)
 
 val pop : 'a Stream.t -> 'a option
 (* Consume the first element and return it. *)
@@ -20,14 +30,14 @@ val select : ('a -> 'b option) -> 'a Stream.t -> 'b Stream.t
 (* map + filter *)
 
 val skip_to : ('a -> bool) -> 'a Stream.t -> 'a Stream.t
-(* Discard lazily non-matching elements of a stream until 
-   one matching element is found. 
+(* Discard lazily non-matching elements of a stream until
+   one matching element is found.
 *)
 
-val really_skip_to : 
+val really_skip_to :
   ?discard: ('a -> unit) ->
   ('a -> bool) -> 'a Stream.t -> int
-(* Discard immediately non-matching elements of a stream until 
+(* Discard immediately non-matching elements of a stream until
    one matching element is found.
    Returns the number of skipped elements.
 *)
@@ -48,7 +58,26 @@ val reduce :
 
 
 val merge :
+  ('a -> 'a -> int) ->
+  'a Stream.t list -> 'a Stream.t
+(*
+   Merge sorted streams into one.
+*)
+
+val merge_full :
   ('k -> 'k -> int) ->
-  ('k -> 'v2) ->
-  ('v2 -> 'v1 -> 'v2) -> ('k * 'v1) Stream.t list -> ('k * 'v2) Stream.t
-(* [merge cmp init fold l]: Merge streams of items sorted by keys. *)
+  ('k -> 'local_acc) ->
+  ('local_acc -> 'v -> 'local_acc) ->
+  ('k * 'v) Stream.t list -> ('k * 'local_acc) Stream.t
+(*
+   [merge_full cmp init fold l]: Merge streams of items sorted by keys.
+
+   For each new key, we create an accumulator and we add to it all the values
+   that have this key. This can be used to deduplicate values or to
+   summarize the values found for each key, without loading them
+   all at once in memory.
+*)
+
+val tests : (string * (unit -> bool)) list
+val test_merge : unit -> bool
+val test_merge_full : unit -> bool
