@@ -1,13 +1,21 @@
+(*
+   See util_localtime.mli
+*)
+
 open Printf
 
 type t = {
-  year : int;
-  month : int;
-  day : int;
-  hour : int;
-  min : int;
-  sec : float;
-  string : string;
+  year: int;
+  month: int;
+  day: int;
+  hour: int;
+  min: int;
+  sec: float;
+  string: string;
+  wday: int;
+  yday: int;
+  absolute_time: float;
+  absolute_day: int;
 }
 
 let invalid label value =
@@ -15,6 +23,103 @@ let invalid label value =
 
 let invalid_int label n =
   invalid label (string_of_int n)
+
+(*
+   0.     -> 0
+   1.     -> 0
+   86399. -> 0
+   86400. -> 1
+
+   -86400. -> -1
+   -86399. -> -1
+   -1.     -> -1
+   0.      ->  0
+*)
+let absolute_day_of_float x =
+  truncate (floor (x /. 86400.))
+
+(*
+   1.3 -> 0.3
+   -1.3 -> 0.7
+*)
+let fpart x =
+  x -. floor x
+
+let to_unnormalized_unix_tm x =
+  {
+    Unix.tm_sec = truncate x.sec;
+    tm_min = x.min;
+    tm_hour = x.hour;
+    tm_mday = x.day;
+    tm_mon = x.month - 1;
+    tm_year = x.year - 1900;
+    tm_wday = 0; (* ignored by Unix.mktime *)
+    tm_yday = 0; (* ignored by Unix.mktime *)
+    tm_isdst = false; (* ignored by Unix.mktime *)
+  }
+
+(*
+   Return seconds since 1970-01-01 and a normalized tm
+*)
+let recompute_absolute_time x =
+  Unix.mktime (to_unnormalized_unix_tm x)
+
+(* RFC 3339 timestamp - without timezone suffix *)
+let make_string year month day hour min sec =
+  sprintf "%04d-%02d-%02dT%02d:%02d:%06.3f"
+    year month day hour min sec
+
+let to_unix_tm x =
+  let tm = {
+    Unix.tm_sec = truncate x.sec;
+    tm_min = x.min;
+    tm_hour = x.hour;
+    tm_mday = x.day;
+    tm_mon = x.month - 1;
+    tm_year = x.year - 1900;
+    tm_wday = 0; (* ignored by Unix.mktime *)
+    tm_yday = 0; (* ignored by Unix.mktime *)
+    tm_isdst = false; (* ignored by Unix.mktime *)
+  } in
+  (* normalize and complete missing fields *)
+  let t, tm = Unix.mktime tm in
+  tm, fpart x.sec
+
+let of_unix_tm unnormalized_tm subsecond =
+  if not (subsecond >= 0. && subsecond < 1.) then
+    invalid_arg ("Util_localtime.of_unix_tm: out-of-range subsecond "
+                  ^ string_of_float subsecond);
+  let open Unix in
+  let t, tm = Unix.mktime unnormalized_tm in
+  let year = 1900 + tm.tm_year in
+  let month = 1 + tm.tm_mon in
+  let day = tm.tm_mday in
+  let hour = tm.tm_hour in
+  let min = tm.tm_min in
+  let sec = float tm.tm_sec +. subsecond in
+  let string = make_string year month day hour min sec in
+  let wday = tm.tm_wday in
+  let yday = tm.tm_yday in
+  {
+    year;
+    month;
+    day;
+    hour;
+    min;
+    sec;
+    string;
+    wday;
+    yday;
+    absolute_time = t +. subsecond;
+    absolute_day = absolute_day_of_float t;
+  }
+
+let of_float t =
+  let x = Unix.gmtime t in
+  of_unix_tm x (fpart t)
+
+let to_float x =
+  x.absolute_time
 
 let create ~year ~month ~day ~hour ~min ~sec =
   if month < 1 || month > 12 then
@@ -27,15 +132,24 @@ let create ~year ~month ~day ~hour ~min ~sec =
     invalid_int "min" min;
   if not (sec >= 0. && sec < 60.) then
     invalid "sec" (sprintf "%g" sec);
-  let string =
-    (* RFC 3339 timestamp - without timezone suffix *)
-    sprintf "%04d-%02d-%02dT%02d:%02d:%06.3f"
-      year month day hour min sec
-  in
-  {
+  let string = make_string year month day hour min sec in
+  let tmp = {
     year; month; day; hour; min; sec;
     string;
-  }
+    (* Fields to be fixed in the next step *)
+    wday = 0;
+    yday = 0;
+    absolute_time = 0.;
+    absolute_day = 0;
+  } in
+  let absolute_time, tm = recompute_absolute_time tmp in
+  let absolute_day = absolute_day_of_float absolute_time in
+  let open Unix in
+  { tmp with
+    wday = tm.tm_wday;
+    yday = tm.tm_yday;
+    absolute_time;
+    absolute_day }
 
 let set_time ?hour ?min ?sec x =
   let hour =
@@ -91,63 +205,6 @@ let timeonly {hour; min; sec} =
 
 let to_pair x =
   (dateonly x, timeonly x)
-
-(*
-   1.3 -> 0.3
-   -1.3 -> 0.7
-*)
-let fpart x =
-  x -. floor x
-
-let of_unix_tm x subsecond =
-  if not (subsecond >= 0. && subsecond < 1.) then
-    invalid_arg ("Util_localtime.of_unix_tm: out-of-range subsecond "
-                  ^ string_of_float subsecond);
-  let open Unix in
-  create
-    ~year: (1900 + x.tm_year)
-    ~month: (1 + x.tm_mon)
-    ~day: x.tm_mday
-    ~hour: x.tm_hour
-    ~min: x.tm_min
-    ~sec: (float x.tm_sec +. subsecond)
-
-let to_unix_tm x =
-  let tm = {
-    Unix.tm_sec = truncate x.sec;
-    tm_min = x.min;
-    tm_hour = x.hour;
-    tm_mday = x.day;
-    tm_mon = x.month - 1;
-    tm_year = x.year - 1900;
-    tm_wday = 0; (* ignored by Unix.mktime *)
-    tm_yday = 0; (* ignored by Unix.mktime *)
-    tm_isdst = false; (* ignored by Unix.mktime *)
-  } in
-  (* normalize and complete missing fields *)
-  let t, tm = Unix.mktime tm in
-  tm, fpart x.sec
-
-let of_float t =
-  let open Unix in
-  let x = gmtime t in
-  of_unix_tm x (fpart t)
-
-let to_float x =
-  let t_sec =
-    Nldate.since_epoch {
-      Nldate.year = x.year;
-      month = x.month;
-      day = x.day;
-      hour = x.hour;
-      minute = x.min;
-      second = int_of_float (floor x.sec);
-      nanos = 0;
-      zone = 0;
-      week_day = -1;
-    }
-  in
-  t_sec +. fpart x.sec
 
 let test_conversions () =
   let conv s = to_string (of_string s) in

@@ -4,13 +4,32 @@
 *)
 
 type t = private {
-  year : int;
-  month : int;
-  day : int;
-  hour : int;
-  min : int;
-  sec : float;
-  string : string;
+  year: int;
+  month: int;
+  day: int;
+  hour: int;
+  min: int;
+  sec: float;
+
+  string: string;
+    (*
+       Formatted as an RFC-3339 date-time without timezone offset e.g.,
+
+         2017-03-21T14:08:23.480
+    *)
+
+  wday: int;
+    (* Day of the week, where Sunday is 0, Monday is 1, etc. *)
+
+  yday: int;
+    (* Day of the year, within [0, 365] *)
+
+  absolute_time: float;
+    (* Seconds since January 1, 1970 *)
+
+  absolute_day: int;
+    (* Day 0 is January 1, 1970, day 1 is January 2, 1970. etc.
+       Can be used to determine if a calendar day is tomorrow, today, etc. *)
 }
 
 val create :
