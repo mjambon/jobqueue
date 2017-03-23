@@ -53,9 +53,26 @@ val to_pair : t -> Util_dateonly.t * Util_timeonly.t
 val dateonly : t -> Util_dateonly.t
 val timeonly : t -> Util_timeonly.t
 
-(* from/to unixtime (seconds since 1970, UTC) *)
 val of_float : float -> t
 val to_float : t -> float
+  (*
+     From/to unixtime (seconds since 1970, UTC).
+     This works for:
+     - converting all dates within UTC.
+     - calculating differences as whole calendar days
+       (by first changing the time to midnight before converting to a float).
+     - adding whole calendar days to a given date, such that
+       adding 1 day to Saturday 11am on a daylight savings weekend results
+       in Sunday 11am (same time of the day),
+       regardless of the fact that 23 or 25 hours have actually elapsed.
+
+     This doesn't work for calculating differences in hours or seconds between
+     dates expressed in an arbitrary timezone because the offset
+     with respect to UTC sometimes changes by an hour.
+     For example, the timestamp "2017-11-05T01:30:00"
+     occurs twice in the America/Los_Angeles timezone, because clocks
+     are turned backward one hour at 2am on that day.
+  *)
 
 val of_unix_tm : Unix.tm -> float -> t
 val to_unix_tm : t -> Unix.tm * float
