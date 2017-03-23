@@ -90,16 +90,6 @@ let add_day x days =
 let sub_day x days =
   sub x (days *. 86400.)
 
-let set_min time min =
-  let t = Unix.localtime time.unixtime in
-  let (u, _) = Unix.mktime {t with Unix.tm_min = min} in
-  of_float u
-
-let set_sec time sec =
-  let t = Unix.localtime time.unixtime in
-  let (u, _) = Unix.mktime {t with Unix.tm_sec = sec} in
-  of_float u
-
 let test_add () =
   let time = of_float 1424225951. in
   let day_add = add_day time 9. in
@@ -110,14 +100,6 @@ let test_add () =
   assert (hour_add.unixtime = 1424258351.);
   assert (min_add.unixtime = 1424226491.);
   assert (sec_add.unixtime = 1424225960.);
-  true
-
-let test_set () =
-  let time = of_float 1424225951. in
-  let min_set = set_min time 99 in
-  let sec_set = set_sec time 99 in
-  assert (min_set.unixtime = 1424230751.);
-  assert (sec_set.unixtime = 1424226039.);
   true
 
 (* add a millisecond, or more if it's not enough to change the string
@@ -145,20 +127,6 @@ module Op = struct
   let ( <= ) a b = compare a b <= 0
   let ( >= ) a b = compare a b >= 0
 end
-
-let hour_of_day h date_time =
-  let gmtime = Unix.gmtime date_time.unixtime in
-  let time = {Unix.tm_sec = 0;
-    tm_min = 0;
-    tm_hour = h;
-    tm_mday = gmtime.Unix.tm_mday;
-    tm_mon = gmtime.Unix.tm_mon;
-    tm_year = gmtime.Unix.tm_year;
-    tm_wday = gmtime.Unix.tm_wday;
-    tm_yday = gmtime.Unix.tm_yday;
-    tm_isdst = gmtime.Unix.tm_isdst} in
-  let (unixtime, _) = Unix.mktime time in
-  of_float unixtime
 
 let diff_seconds a b =
   let a_float = to_float a in
@@ -239,7 +207,6 @@ let tests = [
   "recover", test_recover;
   "unixtime", As_unixtime.test_unixtime;
   "update times", test_add;
-  "set times", test_set;
   "diffs", test_diffs;
 ]
 

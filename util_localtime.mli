@@ -4,6 +4,7 @@
 *)
 
 type t = private {
+  timezone: Util_timezone.t;
   year: int;
   month: int;
   day: int;
@@ -33,6 +34,7 @@ type t = private {
 }
 
 val create :
+  timezone:Util_timezone.t ->
   year:int -> month:int -> day:int ->
   hour:int -> min:int -> sec:float -> t
 
@@ -40,51 +42,33 @@ val set_time :
   ?hour:int -> ?min:int -> ?sec:float ->
   t -> t
 
-val of_string : string -> t
-val of_string_opt : string -> t option
+val of_string : timezone:Util_timezone.t -> string -> t
+val of_string_opt : timezone:Util_timezone.t -> string -> t option
 val to_string : t -> string
 
-val wrap : string -> t
-val unwrap : t -> string
+val of_pair :
+  timezone:Util_timezone.t ->
+  Util_dateonly.t -> Util_timeonly.t -> t
 
-val of_pair : Util_dateonly.t -> Util_timeonly.t -> t
 val to_pair : t -> Util_dateonly.t * Util_timeonly.t
 
 val dateonly : t -> Util_dateonly.t
 val timeonly : t -> Util_timeonly.t
 
-val of_float : float -> t
+val of_float : timezone:Util_timezone.t -> float -> t
+val of_utc : timezone:Util_timezone.t -> Util_time.t -> t
 val to_float : t -> float
+val to_utc : t -> Util_time.t
   (*
-     From/to unixtime (seconds since 1970, UTC).
-     This works for:
-     - converting all dates within UTC.
-     - calculating differences as whole calendar days
-       (by first changing the time to midnight before converting to a float).
-     - adding whole calendar days to a given date, such that
-       adding 1 day to Saturday 11am on a daylight savings weekend results
-       in Sunday 11am (same time of the day),
-       regardless of the fact that 23 or 25 hours have actually elapsed.
-
-     This doesn't work for calculating differences in hours or seconds between
-     dates expressed in an arbitrary timezone because the offset
-     with respect to UTC sometimes changes by an hour.
-     For example, the timestamp "2017-11-05T01:30:00"
-     occurs twice in the America/Los_Angeles timezone, because clocks
-     are turned backward one hour at 2am on that day.
+     Seconds since 1970, UTC.
   *)
 
-val of_unix_tm : Unix.tm -> float -> t
-val to_unix_tm : t -> Unix.tm * float
-  (* Convert from/to Unix.tm record and remaining fraction of one second. *)
+val to_utc : t -> Util_time.t
+val of_utc : timezone:Util_timezone.t -> Util_time.t -> t
+val of_day : timezone:Util_timezone.t -> Util_dateonly.t  -> t
+  (* Conversions between universal time (UTC) and local time.
 
-val fpart : float -> float
-  (*
-     Return what needs to be subtracted in order to round down to the
-     nearest integer, i.e. x -> (x -. floor x).
-
-     1.3 -> 0.3
-     -1.3 -> 0.7
+     Not thread-safe.
   *)
 
 val format : fmt:string -> t -> string
@@ -92,5 +76,38 @@ val format : fmt:string -> t -> string
      http://projects.camlcity.org\
        /projects/dl/ocamlnet-3.2/doc/html-main/Netdate.html
   *)
+
+(*
+   Same functionality as above, excluding the functions that
+   don't make sense without a valid timezone.
+*)
+module No_timezone : sig
+  type localtime = t
+  type t = localtime
+
+  (* Functions used by atdgen *)
+  val wrap : string -> t
+  val unwrap : t -> string
+
+  val of_string : string -> t
+  val of_string_opt : string -> t option
+  val to_string : t -> string
+
+  val create :
+    year:int -> month:int -> day:int ->
+    hour:int -> min:int -> sec:float -> t
+
+  val set_time :
+    ?hour:int -> ?min:int -> ?sec:float ->
+    t -> t
+
+  val of_pair : Util_dateonly.t -> Util_timeonly.t -> t
+  val to_pair : t -> Util_dateonly.t * Util_timeonly.t
+
+  val dateonly : t -> Util_dateonly.t
+  val timeonly : t -> Util_timeonly.t
+
+  val format : fmt:string -> t -> string
+end
 
 val tests : (string * (unit -> bool)) list

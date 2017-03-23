@@ -40,12 +40,12 @@ let is_workday (date_only, time_only) =
   | _ -> assert false
 
 let to_localtime ~timezone t =
-  let local = Util_timezone.local_of_utc timezone t in
+  let local = Util_localtime.of_utc ~timezone t in
   Util_localtime.to_pair local
 
 let of_localtime ~timezone (date_only, time_only) =
-  let local = Util_localtime.of_pair date_only time_only in
-  Util_timezone.utc_of_local timezone local
+  let local = Util_localtime.of_pair ~timezone date_only time_only in
+  Util_localtime.to_utc local
 
 (*
    Add workday-time (in seconds) to a date.
@@ -71,7 +71,7 @@ let sub ~timezone t workday_time =
 
 let test_weekend () =
   (* Daylight savings time change in California on March 12, 2017. *)
-  let timezone = "America/Los_Angeles" in
+  let timezone = Util_timezone.of_string "America/Los_Angeles" in
 
   (* Dates across the time change. Note the time of the day is the same
      despite the time change. *)

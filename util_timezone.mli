@@ -2,15 +2,20 @@
    Timezones and conversion between universal time and local times.
 *)
 
-type t = string
+type t = private string
   (* timezone name, e.g. "America/Los_Angeles" *)
 
 val is_supported : t -> bool
   (* whether the timezone is in our list *)
 
-val timezone_of_string : string -> t
+val of_string : string -> t
   (* check that the timezone is supported and return the same string
      or fail with an exception. *)
+
+val to_string : t -> string
+
+val wrap : string -> t
+val unwrap : t -> string
 
 val fallback_timezone : t
 
@@ -21,12 +26,20 @@ val with_timezone : t -> (unit -> 'a) -> 'a
      Not thread-safe.
   *)
 
-val utc_of_day   : t -> Util_dateonly.t  -> Util_time.t
-val utc_of_local : t -> Util_localtime.t -> Util_time.t
-val local_of_utc : t -> Util_time.t -> Util_localtime.t
-  (* Conversions between universal time (UTC) and local time.
+val localtime : t -> float -> Unix.tm
+  (* Same as Unix.localtime, using the specified timezone instead
+     of the system's default. *)
 
-     Not thread-safe.
+val mktime : t -> Unix.tm -> float * Unix.tm
+  (*
+     Same as Unix.mktime, but operates within the specified timezone
+     instead of the system's default.
+
+     Specifying the proper timezone is known to correct:
+     - the float returned (seconds since epoch)
+     - the `tm_isdt` field
+     - times that occur during a leap forward according to one timezone or
+       and not the other
   *)
 
 val timezones : t list
@@ -40,4 +53,6 @@ val timezone_mapping : (t * string) list
 val display_name : t -> string
   (* Try to use a time zone's nickname, otherwise keep it as is. *)
 
-val tests : (string * (unit -> bool)) list
+(* Some commonly-used timezones *)
+val utc : t
+val america_los_angeles : t

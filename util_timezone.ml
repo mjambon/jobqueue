@@ -25,24 +25,11 @@ let with_timezone tz f =
     fin ();
     Trax.raise __LOC__ e
 
-let utc_of_local tz local =
-  with_timezone tz (fun () ->
-    let local_tm, subsecond = Util_localtime.to_unix_tm local in
-    let unixtime, utc_tm = Unix.mktime local_tm in
-    Util_time.of_float (unixtime +. subsecond)
-  )
+let localtime tz t =
+  with_timezone tz (fun () -> Unix.localtime t)
 
-let local_of_utc tz utc =
-  with_timezone tz (fun () ->
-    let unixtime = Util_time.to_float utc in
-    let x = Unix.localtime unixtime in
-    Util_localtime.of_unix_tm x (Util_localtime.fpart unixtime)
-  )
-
-let midnight = Util_timeonly.create ~hour:0 ~min:0 ~sec:0.
-
-let utc_of_day tz day =
-  utc_of_local tz (Util_localtime.of_pair day midnight)
+let mktime tz tm =
+  with_timezone tz (fun () -> Unix.mktime tm)
 
 (*
   TODO: list timezones for each country and countries for each continent.
@@ -221,10 +208,18 @@ let is_supported =
   List.iter (fun s -> Hashtbl.replace tbl s ()) timezones;
   fun tz -> Hashtbl.mem tbl tz
 
-let timezone_of_string s =
+let of_string s =
   if not (is_supported s) then
     invalid_arg "Util_timezone.timezone_of_string";
   s
+
+let to_string s = s
+
+let wrap = of_string
+let unwrap = to_string
+
+let utc = of_string "UTC"
+let america_los_angeles = of_string "America/Los_Angeles"
 
 let timezone_mapping = [
   ("America/Chicago", "Central Time");
@@ -237,25 +232,3 @@ let timezone_mapping = [
 let display_name tz =
   try List.assoc tz timezone_mapping
   with Not_found -> tz
-
-let test_utc_of_local () =
-  let tz = "America/New_York" in
-  let local = Util_localtime.of_string "2016-02-13T00:39:57" in
-  let utc = utc_of_local tz local in
-  let out = Util_time.to_float utc in
-  let expected =
-    Util_time.(to_float (of_string "2016-02-12T21:39:57.000-08:00")) in
-  out = expected
-
-let test_local_of_utc () =
-  let tz = "America/New_York" in
-  let utc = Util_time.of_string "2016-02-13T00:39:57Z" in
-  let local = local_of_utc tz utc in
-  let out = Util_localtime.to_string local in
-  let expected = "2016-02-12T19:39:57.000" in
-  out = expected
-
-let tests = [
-  "local -> utc", test_utc_of_local;
-  "utc -> local", test_local_of_utc;
-]
