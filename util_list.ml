@@ -21,6 +21,18 @@ let compare_int : ('a -> int) -> 'a -> 'a -> int =
   fun to_int a b ->
     compare (to_int a) (to_int b)
 
+(*
+   Compose a comparison function from a list of comparison functions.
+*)
+let rec compare_multi cmp_list a b =
+  match cmp_list with
+  | [] -> 0
+  | cmp :: fallback_cmp ->
+      let c = cmp a b in
+      if c <> 0 then c
+      else
+        compare_multi fallback_cmp a b
+
 let sort_full ?(compare = compare) get_key l =
   let kv_list = List.rev_map (fun v -> (get_key v, v)) l in
   let kv_list = List.sort (fun (k1, v1) (k2, v2) -> compare k2 k1) kv_list in
