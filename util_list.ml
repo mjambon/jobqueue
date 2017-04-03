@@ -7,7 +7,7 @@
    This is useful when the default order assumed by
    Pervasives.compare is unsatisfying (or unspecified).
 
-   Example:
+   Example 1: variants
 
      let cmp =
        compare_int (function
@@ -16,6 +16,12 @@
          | `Large -> 2
        ) in
      List.sort cmp l
+
+   Example 2: sort by decreasing length
+
+     let cmp =
+       compare_int (fun x -> - (String.length x.name))
+
 *)
 let compare_int : ('a -> int) -> 'a -> 'a -> int =
   fun to_int a b ->
@@ -23,15 +29,23 @@ let compare_int : ('a -> int) -> 'a -> 'a -> int =
 
 (*
    Compose a comparison function from a list of comparison functions.
+
+   Example: sort by decreasing age, then by name
+
+     let cmp =
+       compare_by [
+         compare_int (fun x -> - x.age);
+         String.compare;
+       ]
 *)
-let rec compare_multi cmp_list a b =
+let rec compare_by cmp_list a b =
   match cmp_list with
   | [] -> 0
   | cmp :: fallback_cmp ->
       let c = cmp a b in
       if c <> 0 then c
       else
-        compare_multi fallback_cmp a b
+        compare_by fallback_cmp a b
 
 let sort_full ?(compare = compare) get_key l =
   let kv_list = List.rev_map (fun v -> (get_key v, v)) l in
