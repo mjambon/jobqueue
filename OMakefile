@@ -6,6 +6,7 @@ FILES[] =
   util_string
   util_search
   util_json
+  util_json_tuple
 # Universal time and RFC-3339 formatting
   util_time
 # Switch to specified timezone, list timezones
