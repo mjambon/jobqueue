@@ -45,7 +45,7 @@ let flatten tests =
 (*
    Run a list of tests.
 *)
-let run test_suite_name (l : (string * (unit -> bool * 'a)) list) =
+let run_full test_suite_name (l : (string * (unit -> bool * 'a)) list) =
   let results = List.map run_test l in
   List.iter (fun (name, (success, opt)) ->
     print_outcome name success
@@ -59,9 +59,9 @@ let run test_suite_name (l : (string * (unit -> bool * 'a)) list) =
   let total_success = (successes = n) in
   total_success, results
 
-let simple_run test_suite_name (l : (string * (unit -> bool)) list) : bool =
+let run test_suite_name (l : (string * (unit -> bool)) list) : bool =
   let total_success, data =
-    run test_suite_name (
+    run_full test_suite_name (
       List.map (fun (name, f) ->
         let g () = f (), None in
         (name, g)
@@ -69,3 +69,13 @@ let simple_run test_suite_name (l : (string * (unit -> bool)) list) : bool =
     )
   in
   total_success
+
+let run_lwt
+    test_suite_name
+    (l : (string * (unit -> bool Lwt.t)) list) : bool =
+  let l =
+    BatList.map
+      (fun (name, f) -> (name, fun () -> Lwt_main.run (f ())))
+      l
+  in
+  run test_suite_name l
