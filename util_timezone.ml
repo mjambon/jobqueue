@@ -624,28 +624,25 @@ let known_timezones =
 (*
    Load timezones really supported by the system, in addition
    to the possibly incomplete list above.
+
+   Unix.open_process_in cannot be used here. It causes
+   blockage later when using Lwt. This is why we use the Lwt functions
+   and we start an Lwt loop just for this.
 *)
 let load_system_timezones () =
   (* This works on Linux and probably not on MacOS. *)
-  let ic = Unix.open_process_in "timedatectl list-timezones" in
-  let acc = ref [] in
-  try
-    while true do
-      let tz = input_line ic in
-      acc := tz :: !acc
-    done;
-    assert false
-  with e ->
-    ignore (Unix.close_process_in ic);
-    if e <> End_of_file then
-      Trax.raise __LOC__ e;
-    List.rev !acc
+  let cmd = "timedatectl", [| "timedatectl"; "list-timezones" |] in
+  Lwt_process.with_process_in cmd (fun process_in ->
+    let ic = process_in # stdout in
+    let stream = Lwt_io.read_lines ic in
+    Lwt_stream.to_list stream
+  )
 
 let timezone_table = Hashtbl.create 200
 
 let loading_error, system_timezones =
   try
-    let l = load_system_timezones () in
+    let l = Lwt_main.run (load_system_timezones ()) in
     None, l
   with e ->
     Some e, []
