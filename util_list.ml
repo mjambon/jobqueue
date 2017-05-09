@@ -446,6 +446,27 @@ let test_exists_n () =
   assert (exists_n 0 [] f);
   true
 
+let shuffle l =
+  let a = Array.of_list l in
+  let len = Array.length a in
+  for i = 0 to len - 2 do
+    let j = len - Random.int (len - i) - 1 in
+    let x = a.(i) in
+    a.(i) <- a.(j);
+    a.(j) <- x;
+  done;
+  Array.to_list a
+
+let test_shuffle () =
+  assert (shuffle [] = []);
+  assert (shuffle [0] = [0]);
+  assert (shuffle [0;0;0] = [0;0;0]);
+  let l = [1; 2; 3] in
+  let rev = List.rev l in
+  let ll = Array.to_list (Array.init 100 (fun _ -> shuffle l)) in
+  assert (List.exists (fun x -> x = rev) ll);
+  true
+
 (*
    Common functions with arguments in a better order,
    and which won't blow the stack
@@ -474,4 +495,5 @@ let tests = [
   "group by", test_group_by;
   "optimum", test_optimum;
   "exists_n", test_exists_n;
+  "shuffle", test_shuffle;
 ]
