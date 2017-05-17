@@ -27,6 +27,10 @@ let compare_int : ('a -> int) -> 'a -> 'a -> int =
   fun to_int a b ->
     compare (to_int a) (to_int b)
 
+let compare_float : ('a -> float) -> 'a -> 'a -> int =
+  fun to_float a b ->
+    compare (to_float a) (to_float b)
+
 (*
    Compose a comparison function from a list of comparison functions.
 
