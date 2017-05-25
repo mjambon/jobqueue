@@ -14,6 +14,19 @@ let line_sep = Pcre.regexp "\r*\n"
 let split_lines s =
   Pcre.split ~rex:line_sep s
 
+let is_whitespace =
+  let rex = Pcre.regexp "\\A[ \r\t\n]*\\z" in
+  fun s -> Pcre.pmatch ~rex s
+
+let test_is_whitespace () =
+  assert (is_whitespace "");
+  assert (is_whitespace "\n");
+  assert (is_whitespace " \n ");
+  assert (is_whitespace " \n\n");
+  assert (not (is_whitespace "a\n"));
+  assert (not (is_whitespace "\na\n"));
+  true
+
 let string_of_string_option =
   function None -> "None" | Some s -> Printf.sprintf "%s" s
 
@@ -133,6 +146,7 @@ let prettify s =
       s
 
 let tests = [
+  "is_whitespace", test_is_whitespace;
   "utf8 (ascii)",
     (fun () -> Utf8val.is_utf8 "abc");
   "utf8 (byte128)",
