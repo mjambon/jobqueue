@@ -7,6 +7,7 @@ FILES[] =
   util_search
   util_json
   util_json_tuple
+  util_float
 # Universal time and RFC-3339 formatting
   util_time
 # Switch to specified timezone, list timezones
@@ -42,20 +43,13 @@ FILES[] =
   util_half_lazy
   util_late_init
   util_cache
-  util_quill_valid
-  util_quill_t
-  util_quill_j
-  util_quill_v
-  util_quill
   util_shell
   util_jobqueue
   util_counter
   util_linux
   util_prio
   util_gzip
-  util_float
 
-Atdgen(util_quill, -j-std -j-defaults)
 OCamlLibrary(util, $(FILES))
 Meta(util)
 

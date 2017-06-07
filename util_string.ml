@@ -45,7 +45,7 @@ let test_compact_whitespace () =
   compact_whitespace " \ta bb \t \n\n ccc\n\t" = "a bb ccc"
 
 let ascii_normalize s =
-  compact_whitespace (ascii_lowercase s)
+  compact_whitespace (String.lowercase_ascii s)
 
 (*
    Separate prefix from what follows, based on a single character separator:

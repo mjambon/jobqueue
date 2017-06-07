@@ -18,7 +18,7 @@ let test_comparison () =
   try
     ignore (Pervasives.compare (make_test_value 0) (make_test_value 0));
     false
-  with Invalid_argument "equal: functional value" ->
+  with Invalid_argument _ ->
     true
 
 let tests = [
