@@ -48,9 +48,9 @@ let extract_query_words s =
 let compile (query : query) : compiled_query =
   let query = Util_string.compact_whitespace query in
   let ascii_words = extract_query_words query in
-  let norm_query = Util_string.ascii_lowercase query in
+  let norm_query = String.lowercase_ascii query in
   let norm_words =
-    Util_list.unique (BatList.map Util_string.ascii_lowercase ascii_words)
+    Util_list.unique (BatList.map String.lowercase_ascii ascii_words)
   in
   let whole_query =
     if not (BatList.mem norm_query norm_words) then
