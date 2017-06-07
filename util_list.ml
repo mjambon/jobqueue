@@ -57,7 +57,7 @@ let sort_full ?(compare = compare) get_key l =
   List.rev_map snd kv_list
 
 let test_sort_full () =
-  sort_full String.lowercase ["C"; "A"; "b"] = ["A"; "b"; "C"]
+  sort_full String.lowercase_ascii ["C"; "A"; "b"] = ["A"; "b"; "C"]
 
 (*
    Remove from the first all duplicate elements based on their keys
