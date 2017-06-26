@@ -136,21 +136,34 @@ let tag_links line =
     ~itempl:(Pcre.subst "<a href=\"$&\">$&</a>")
     line
 
-let encode_paragraph l =
+let encode_paragraph
+    ?(p_elt = "p")
+    ?p_class
+    ?p_style
+    l =
   let paragraph = BatList.map (fun s -> tag_links (encode s)) l in
-  "<p>" ^ String.concat "<br>\n" paragraph ^ "</p>\n"
+  sprintf "<%s%s%s>%s</%s>\n"
+    p_elt
+    (match p_class with None -> "" | Some s -> sprintf " class='%s'" s)
+    (match p_style with None -> "" | Some s -> sprintf " style='%s'" s)
+    (String.concat "<br>\n" paragraph)
+    p_elt
 
-let encode_paragraphs ll =
-  String.concat "\n\n" (BatList.map encode_paragraph ll)
+let encode_paragraphs ?p_elt ?p_class ?p_style ll =
+  String.concat "\n\n" (
+    BatList.map
+      (encode_paragraph ?p_elt ?p_class ?p_style)
+      ll
+  )
 
-let encode_text l =
+let encode_text ?p_elt ?p_class ?p_style l =
   let rec print_one buf = function
     | Quote l ->
         bprintf buf
           "<blockquote type='cite'>\n%a\n</blockquote>\n"
           print_list l
     | Paragraphs l ->
-        Buffer.add_string buf (encode_paragraphs l)
+        Buffer.add_string buf (encode_paragraphs ?p_elt ?p_class ?p_style l)
 
   and print_list buf l =
     List.iter (print_one buf) l
@@ -164,8 +177,8 @@ let encode_text l =
    replace single line breaks by <br>.
    TODO: replace URLs by links
 *)
-let of_text s =
-  encode_text (parse_quotes (split_lines s))
+let of_text ?p_elt ?p_class ?p_style s =
+  encode_text ?p_elt ?p_class ?p_style (parse_quotes (split_lines s))
 
 let test_from_text () =
   let s = "\
