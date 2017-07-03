@@ -14,7 +14,7 @@
 *)
 
 (* Keys must be comparable and hashable with the default functions *)
-let memoize get_key f =
+let create get_key f =
   let tbl = Hashtbl.create 20 in
   fun x ->
     let key = get_key x in
