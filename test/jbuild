@@ -1,0 +1,10 @@
+(jbuild_version 1)
+
+(executable
+ ((name test_jobqueue)
+  (libraries (alcotest jobqueue))))
+
+(alias
+ ((name runtest)
+  (deps (test_jobqueue.exe))
+  (action (run ${<} -q --color=always))))

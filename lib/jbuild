@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library
+ ((name jobqueue)
+  (public_name jobqueue)
+  (libraries (lwt lwt.unix))
+  (synopsis "Queue of jobs to be forked off into their own process.")))
