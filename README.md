@@ -1,11 +1,30 @@
-This repository was extracted from a larger internal project at
-[Esper](https://esper.com).
-We released it in the hope that it might be useful to other
-OCaml developers.
+jobqueue
+==
 
-It won't build as is but most of the code was used in production.
+This is an OCaml library for detaching CPU-intensive jobs into their
+own process. The maximum number of jobs running in parallel is
+configurable.
 
-Description
------------
+Properties that may not exist in other libraries include:
 
-Various OCaml utilities.
+* ability to continuously submit new jobs
+* no need for the input data to be serializable
+
+Implementation
+--
+
+A process is created by a call to `fork()`, allowing the child process
+to inherit all the data it needs from its parent without
+complications. Only the result of its execution is serialized, which
+is done with the `Marshal` module, and passed to the parent process
+using a pipe.
+
+Concurrency is managed with the `Lwt` library.
+
+Due to the reliance on `fork()`, this library won't work on Windows.
+
+Authors
+--
+
+The original Jobqueue module was written by Martin Jambon at Esper
+and released to the public in 2017.
