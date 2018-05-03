@@ -1,4 +1,4 @@
-.PHONY: build install test
+.PHONY: build install test clean
 
 build:
 	jbuilder build
@@ -8,3 +8,6 @@ install:
 
 test:
 	jbuilder runtest
+
+clean:
+	jbuilder clean
