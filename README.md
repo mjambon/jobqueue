@@ -16,7 +16,7 @@ Implementation
 A process is created by a call to `fork()`, allowing the child process
 to inherit all the data it needs from its parent without
 complications. Only the result of its execution is serialized, which
-is done with the `Marshal` module, and passed to the parent process
+is done with the `Marshal` module, and passed back to the parent process
 using a pipe.
 
 Concurrency is managed with the `Lwt` library.
