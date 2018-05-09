@@ -1,3 +1,11 @@
+Disclaimer: this is actually not a job queue at this point; this is
+old code I cleaned up and I didn't remember exactly what it was doing.
+It only has a hard limit on how many jobs can run simultaneously. If the
+maximum is 10 and 11 jobs are submitted at the same time, the
+11th job is rejected instead of being queued up. The solution
+to deal with this may be as simple as creating a condition variable
+that's true iff the number of running jobs is below the max.
+
 jobqueue
 ==
 
