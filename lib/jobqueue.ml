@@ -7,7 +7,6 @@ open Lwt
 
 type 'a result = [
   | `Value of 'a
-  | `Capacity_exceeded
   | `Timeout
   | `User_exception of exn
       (* Exception raised by the user's function.
@@ -15,6 +14,16 @@ type 'a result = [
   | `Error of string
       (* Error internal to the implementation of this module. *)
 ]
+
+let value_exn = function
+  | `Value x -> x
+  | `Timeout ->
+      failwith "Jobqueue timeout"
+  | `User_exception e ->
+      failwith (sprintf "Jobqueue user exception: %s"
+                  (Printexc.to_string e))
+  | `Error s ->
+      failwith (sprintf "Jobqueue error: %s" s)
 
 let run_child fd_out f =
   let result : _ result =
@@ -35,11 +44,12 @@ let with_timeout ~timeout x =
     Lwt_unix.sleep timeout >>= fun () ->
     return `Timeout
   in
-  let job =
-    x >>= fun result ->
-    return result
-  in
-  Lwt.choose [ sleep; job ]
+  Lwt.choose [ sleep; x ]
+
+let with_opt_timeout opt_timeout x =
+  match opt_timeout with
+  | None -> x
+  | Some timeout -> with_timeout ~timeout x
 
 let rec waitpid pid =
   match
@@ -52,14 +62,13 @@ let rec waitpid pid =
 let terminate_child pid =
   Unix.kill pid Sys.sigkill
 
-let run_parent ~timeout ic child_pid =
-  with_timeout ~timeout (Lwt_io.read_value ic) >>= fun result ->
+let run_parent opt_timeout ic child_pid =
+  with_opt_timeout opt_timeout (Lwt_io.read_value ic) >>= fun result ->
   Lwt_io.close ic >>= fun () ->
   (match result with
    | `Timeout -> terminate_child child_pid
    | `Value _
    | `User_exception _ -> ()
-   | `Capacity_exceeded
    | `Error _ -> assert false
   );
   waitpid child_pid >>= fun (pid, process_status) ->
@@ -76,7 +85,7 @@ let run_parent ~timeout ic child_pid =
   | Unix.WSTOPPED n ->
       return (`Error (sprintf "Child process stopped by signal %i" n))
 
-let run_job ~timeout (f : unit -> 'a) : 'a result Lwt.t =
+let run_job opt_timeout (f : unit -> 'a) : 'a result Lwt.t =
   Lwt_io.flush_all () >>= fun () ->
   let fd_read_from_child, fd_write_to_parent = Unix.pipe () in
   let child_pid = Lwt_unix.fork () in
@@ -100,97 +109,47 @@ let run_job ~timeout (f : unit -> 'a) : 'a result Lwt.t =
     let fd_write_to_parent =
       Lwt_io.of_unix_fd ~mode:Lwt_io.output fd_write_to_parent in
     Lwt_io.close fd_write_to_parent >>= fun () ->
-    run_parent ~timeout fd_read_from_child child_pid
+    run_parent opt_timeout fd_read_from_child child_pid
   )
 
-type pool = {
+type t = {
   mutable running : int;
+  avail_condition : unit Lwt_condition.t;
   max_running : int;
 }
 
-let create_pool ~max_running =
-  { running = 0;
-    max_running }
+let create ?(max_running = 1) () =
+  if max_running <= 0 then
+    invalid_arg "Jobqueue.create"
+  else
+    { running = 0;
+      avail_condition = Lwt_condition.create ();
+      max_running }
 
-let submit ~pool ~timeout f : _ result Lwt.t =
-  assert (pool.running >= 0);
-  if pool.running >= pool.max_running then
-    return `Capacity_exceeded
-  else (
-    pool.running <- pool.running + 1;
+let submit ?timeout:opt_timeout queue f : _ result Lwt.t =
+  assert (queue.running >= 0);
+  let run () =
+    queue.running <- queue.running + 1;
     Lwt.finalize
-      (fun () -> run_job ~timeout f)
+      (fun () -> run_job opt_timeout f)
       (fun () ->
-         pool.running <- pool.running - 1;
+         queue.running <- queue.running - 1;
+         Lwt_condition.signal queue.avail_condition ();
          return ()
       )
-  )
-
-(* Tests *)
-
-let sleep t = ignore (Unix.select [] [] [] t)
-
-let test_capacity () =
-  let main () =
-    let pool = create_pool 2 in
-    let job () = () in
-    Lwt_list.map_p
-      (fun () -> submit ~pool ~timeout:1. job)
-      [(); (); ()]
-    >>= fun result ->
-    let expected = [ `Value (); `Value (); `Capacity_exceeded; ] in
-    assert (List.sort compare result = List.sort compare expected);
-    return true
   in
-  Lwt_main.run (main ())
+  if queue.running >= queue.max_running then
+    Lwt_condition.wait queue.avail_condition >>= fun () ->
+    run ()
+  else
+    run ()
 
-let test_timeout () =
-  let main () =
-    let pool = create_pool 5 in
-    let job () = sleep 0.11 in
-    submit ~pool ~timeout:0.1 job >>= function
-    | `Timeout -> return true
-    | `Value _ -> assert false
-    | `Capacity_exceeded -> assert false
-    | `User_exception _ -> assert false
-    | `Error s ->
-        eprintf "Error: %s\n%!" s;
-        assert false
+let map ?timeout queue l f =
+  let promises =
+    List.fold_left (fun acc x ->
+      let job () = f x in
+      submit ?timeout queue job :: acc
+    ) [] l
+    |> List.rev
   in
-  Lwt_main.run (main ())
-
-let test_values () =
-  let main () =
-    let pool = create_pool 5 in
-    let job () =
-      Array.init 3 (fun i -> i)
-    in
-    submit ~pool ~timeout:0.1 job >>= function
-    | `Value [| 0; 1; 2 |] -> return true
-    | `Value _ -> assert false
-    | `Capacity_exceeded -> assert false
-    | `Timeout -> assert false
-    | `User_exception _ -> assert false
-    | `Error _ -> assert false
-  in
-  Lwt_main.run (main ())
-
-let test_exceptions () =
-  let main () =
-    let pool = create_pool 5 in
-    let job () = failwith "this is a test" in
-    submit ~pool ~timeout:1. job >>= function
-    | `User_exception _ -> return true
-    | `Value _ -> assert false
-    | `Capacity_exceeded -> assert false
-    | `Timeout -> assert false
-    | `Error _ -> assert false
-  in
-  Lwt_main.run (main ())
-
-let tests = [
-  "capacity", test_capacity;
-  "timeout", test_timeout;
-  "values", test_values;
-  "exceptions", test_exceptions;
-]
+  Lwt_list.map_s (fun x -> x) promises

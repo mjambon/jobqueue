@@ -1,37 +1,61 @@
-(*
+(**
    Run CPU-intensive jobs in their own process and restrict
-   how many such jobs may run in parallel
-   and how long they take to complete.
+   how many such jobs may run in parallel and how long they take
+   to complete.
 *)
 
-type pool
+(** The type of a job queue. *)
+type t
 
 type 'a result = [
+  (** Normal result of a job. *)
   | `Value of 'a
-  | `Capacity_exceeded
-  | `Timeout
+
+  (** Exception that was raised by the job.
+      This exception is meant to be printed out only.
+      The exception cannot be used in pattern-matching or in comparisons,
+      due to implementation limitations having to do with serialization. *)
   | `User_exception of exn
+
+  (** Indicates that the job timed out. *)
+  | `Timeout
+
+  (** Some other error occurred. *)
   | `Error of string
 ]
 
-val create_pool : max_running:int -> pool
-  (*
-     All submitted jobs can run at the same time, sharing resources.
-     We keep track of how many jobs run in parallel and reject new jobs
-     if too many jobs are already running.
-     It is simple but not optimal if the maximum number of jobs exceeds the
-     number of CPUs.
-  *)
+(** Extract the value or raise a [Failure] exception. *)
+val value_exn : 'a result -> 'a
 
-val submit : pool:pool -> timeout:float -> (unit -> 'a) -> 'a result Lwt.t
-  (*
-     Run a computation in its own process.
+(**
+   Create a queue of jobs to be run in their own process.
 
-     If too many jobs are already running or if the job takes longer than
-     the specified timeout, the result is None.
+   @param max_running is the maximum number of jobs to run at the same
+   time. The default is 1.
+*)
+val create : ?max_running:int -> unit -> t
 
-     Beware that any change in global variables won't be shared
-     with the parent process.
-  *)
+(**
+   Run a computation in its own process using a call to [Unix.fork()].
+   The result is serialized using [Marshal] and returned back to the
+   parent using a pipe.
 
-val tests : (string * (unit -> bool)) list
+   Beware that any change in global variables won't be shared
+   with the parent process.
+
+   @param timeout the time limit for the execution of the job. There's
+   no timeout by default.
+*)
+val submit : ?timeout:float -> t -> (unit -> 'a) -> 'a result Lwt.t
+
+(**
+   Parallel list map.
+   [map q l f] applies [f] to each element of the list, each in a detached
+   process.
+*)
+val map :
+  ?timeout:float ->
+  t ->
+  'a list ->
+  ('a -> 'b) ->
+  'b result list Lwt.t
