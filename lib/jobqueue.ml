@@ -87,28 +87,26 @@ let run_parent opt_timeout ic child_pid =
 
 let run_job opt_timeout (f : unit -> 'a) : 'a result Lwt.t =
   Lwt_io.flush_all () >>= fun () ->
-  let fd_read_from_child, fd_write_to_parent = Unix.pipe () in
+  let fd_read_from_child, fd_write_to_parent = Lwt_unix.pipe_in () in
   let child_pid = Lwt_unix.fork () in
   if child_pid = 0 then (
     (* Child process *)
     try
       (* Everything is done synchronously in the child from here.
          Not sure how to deal with Lwt's main loop that's still running. *)
-      Unix.close fd_read_from_child;
+      ignore (Lwt_unix.close fd_read_from_child); (* does this work? *)
       run_child fd_write_to_parent f;
       exit 0
     with e ->
-      eprintf "Uncaught exception in Util_jobqueue: %s\n%!"
+      eprintf "Fatal exception in child process created by Jobqueue: %s\n%!"
         (Printexc.to_string e);
       exit 1
   )
   else (
     (* Parent process *)
     let fd_read_from_child =
-      Lwt_io.of_unix_fd ~mode:Lwt_io.input fd_read_from_child in
-    let fd_write_to_parent =
-      Lwt_io.of_unix_fd ~mode:Lwt_io.output fd_write_to_parent in
-    Lwt_io.close fd_write_to_parent >>= fun () ->
+      Lwt_io.of_fd ~mode:Lwt_io.input fd_read_from_child in
+    Unix.close fd_write_to_parent;
     run_parent opt_timeout fd_read_from_child child_pid
   )
 

@@ -107,7 +107,7 @@ let test_map () =
           = [0; 1; 4; 9; 16; 25])
 
 let test_many_jobs () =
-  let num_todo = 2000 in
+  let num_todo = 10000 in
   let main () =
     let q = Jobqueue.create ~max_running:4 () in
     let inputs = Array.(to_list (init num_todo (fun i -> i))) in

@@ -7,7 +7,7 @@ install:
 	jbuilder install
 
 test:
-	jbuilder runtest
+	ALCOTEST_QUICK_TESTS=false jbuilder runtest -f
 
 clean:
 	jbuilder clean
