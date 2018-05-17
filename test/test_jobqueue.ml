@@ -106,6 +106,19 @@ let test_map () =
   assert (Lwt_main.run (main ())
           = [0; 1; 4; 9; 16; 25])
 
+let test_many_jobs () =
+  let num_todo = 2000 in
+  let main () =
+    let q = Jobqueue.create ~max_running:4 () in
+    let inputs = Array.(to_list (init num_todo (fun i -> i))) in
+    Jobqueue.map q inputs (fun i ->
+      printf "I am job %i, process %i.\n%!" i (Unix.getpid ())
+    ) >>= fun l ->
+    ignore (List.map Jobqueue.value_exn l);
+    return ()
+  in
+  Lwt_main.run (main ())
+
 let jobqueue_suite = [
   "pid", `Quick, test_pid;
   "order", `Quick, test_order;
@@ -113,10 +126,13 @@ let jobqueue_suite = [
   "values", `Quick, test_values;
   "exceptions", `Quick, test_exceptions;
   "map", `Quick, test_map;
+  "many jobs", `Quick, test_many_jobs;
 ]
 
 let suites = [
   "Jobqueue", jobqueue_suite;
 ]
 
-let () = Alcotest.run "jobqueue" suites
+let () =
+  Printexc.record_backtrace true;
+  Alcotest.run "jobqueue" suites
