@@ -111,22 +111,33 @@ let run_job opt_timeout (f : unit -> 'a) : 'a result Lwt.t =
   )
 
 type t = {
+  mutable pending : int; (* informational only *)
   mutable running : int;
   avail_condition : unit Lwt_condition.t;
   max_running : int;
 }
 
+let pending q =
+  q.pending
+
+let running q =
+  q.running
+
 let create ?(max_running = 1) () =
   if max_running <= 0 then
     invalid_arg "Jobqueue.create"
-  else
-    { running = 0;
-      avail_condition = Lwt_condition.create ();
-      max_running }
+  else {
+    pending = 0;
+    running = 0;
+    avail_condition = Lwt_condition.create ();
+    max_running;
+  }
 
 let submit ?timeout:opt_timeout queue f : _ result Lwt.t =
+  assert (queue.pending >= 0);
   assert (queue.running >= 0);
   let run () =
+    queue.pending <- queue.pending - 1;
     queue.running <- queue.running + 1;
     Lwt.finalize
       (fun () -> run_job opt_timeout f)
@@ -136,6 +147,7 @@ let submit ?timeout:opt_timeout queue f : _ result Lwt.t =
          return ()
       )
   in
+  queue.pending <- queue.pending + 1;
   if queue.running >= queue.max_running then
     Lwt_condition.wait queue.avail_condition >>= fun () ->
     run ()

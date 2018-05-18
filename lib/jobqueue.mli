@@ -7,6 +7,15 @@
 (** The type of a job queue. *)
 type t
 
+(** Return the number of jobs that have been submitted and haven't
+    started yet. This can be used by the application to throttle job
+    submission so as to avoid using too much memory.
+*)
+val pending : t -> int
+
+(** Return the number of jobs currently running. *)
+val running : t -> int
+
 type 'a result = [
   (** Normal result of a job. *)
   | `Value of 'a

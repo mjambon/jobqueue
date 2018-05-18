@@ -123,6 +123,41 @@ let test_many_jobs () =
   in
   Lwt_main.run (main ())
 
+(*
+   Avoid having too many items into the queue at the same time.
+*)
+let test_throttling () =
+  let input_list = [1; 2; 3; 4; 5; 6; 7; 8; 9; 10] in
+  let inputs = Stream.of_list input_list in
+  let max_running = 2 in
+  let max_pending = 3 in
+  let q = Jobqueue.create ~max_running () in
+  let print_stats () =
+    printf "pending: %i, running: %i\n%!"
+      (Jobqueue.pending q) (Jobqueue.running q)
+  in
+  let done_ = ref 0 in
+  let rec consume_inputs previous_jobs =
+    print_stats ();
+    assert (Jobqueue.pending q <= max_pending);
+    assert (Jobqueue.running q <= max_running);
+    if Jobqueue.pending q < max_pending then
+      match Stream.peek inputs with
+      | None -> return ()
+      | Some x ->
+          Stream.junk inputs;
+          let job =
+            Jobqueue.submit q (fun () -> sleep 0.001) >>= fun result ->
+            incr done_;
+            consume_inputs previous_jobs
+          in
+          Lwt.join [job; consume_inputs previous_jobs]
+    else
+      previous_jobs
+  in
+  Lwt_main.run (consume_inputs (return ()));
+  assert (!done_ = List.length input_list)
+
 let jobqueue_suite = [
   "pid", `Quick, test_pid;
   "order", `Quick, test_order;
@@ -131,6 +166,7 @@ let jobqueue_suite = [
   "exceptions", `Quick, test_exceptions;
   "map", `Quick, test_map;
   "many jobs", `Quick, test_many_jobs;
+  "throttling", `Quick, test_throttling;
 ]
 
 let suites = [
