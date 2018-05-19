@@ -44,6 +44,9 @@ val value_exn : 'a result -> 'a
 *)
 val create : ?max_running:int -> unit -> t
 
+(** Return the [max_running] parameter of a queue. *)
+val max_running : t -> int
+
 (**
    Run a computation in its own process using a call to [Unix.fork()].
    The result is serialized using [Marshal] and returned back to the

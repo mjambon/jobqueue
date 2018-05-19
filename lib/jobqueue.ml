@@ -117,11 +117,9 @@ type t = {
   max_running : int;
 }
 
-let pending q =
-  q.pending
-
-let running q =
-  q.running
+let pending q = q.pending
+let running q = q.running
+let max_running q = q.max_running
 
 let create ?(max_running = 1) () =
   if max_running <= 0 then

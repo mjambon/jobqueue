@@ -128,7 +128,7 @@ let test_many_jobs () =
 *)
 let test_throttling () =
   let input_list = [1; 2; 3; 4; 5; 6; 7; 8; 9; 10] in
-  let inputs = Stream.of_list input_list in
+  let inputs = Lwt_stream.of_list input_list in
   let max_running = 2 in
   let max_pending = 3 in
   let q = Jobqueue.create ~max_running () in
@@ -142,10 +142,9 @@ let test_throttling () =
     assert (Jobqueue.pending q <= max_pending);
     assert (Jobqueue.running q <= max_running);
     if Jobqueue.pending q < max_pending then
-      match Stream.peek inputs with
+      Lwt_stream.get inputs >>= function
       | None -> return ()
       | Some x ->
-          Stream.junk inputs;
           let job =
             Jobqueue.submit q (fun () -> sleep 0.001) >>= fun result ->
             incr done_;
